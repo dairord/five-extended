@@ -1,0 +1,100 @@
+<EditScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'select_image'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: '48dp'
+            
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    text: 'Rotation'
+                Slider:
+                    id: rotation_slider
+                    min: 0
+                    max: 360
+                    value: 180
+                    on_value: root.girar(self.value)
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    text: 'Hue'    
+                Slider:
+                    id: hue_slider
+                    min: 0
+                    max: 255
+                    value: 70
+                    on_value: root.update_hue(self.value)
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    text: 'Saturation'
+                Slider:
+                    id: saturation_slider
+                    min: 0
+                    max: 255
+                    value: 255
+                    on_value: root.update_saturation(self.value)
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    text: 'Valor'
+                Slider:
+                    id: value_slider
+                    min: 0
+                    max: 255
+                    value: 50
+                    on_value: root.update_value(self.value)
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: '48dp'
+            
+            CheckBox:
+                id: json_map_checkbox
+                
+            Label:
+                text: 'Generate JSON Map'
+            
+            CheckBox:
+                id: text_map_checkbox
+            
+            Label:
+                text: 'Generate TEXT Map'
+                
+        BoxLayout:
+            Image:
+                id: map_image
+                source: 'map_placeholder.png'
+                # Add your dynamic source or instructions to update the image source
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: None
+                width: '120dp'
+                
+                Button:
+                    text: 'Show detection mask'
+                    on_release: root.toggle_mask()
+                
+                Button:
+                    text: 'Show Detections'
+                    on_release: root.toggle_detection()
+                
+        BoxLayout:
+            size_hint_y: None
+            height: '48dp'
+            
+            Button:
+                text: 'Generate'
+                # Add on_press event to trigger generation process

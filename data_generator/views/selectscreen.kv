@@ -1,0 +1,46 @@
+# selectscreen.kv
+<SelectScreen>:
+    coord1_input: coord1_input_id
+    coord2_input: coord2_input_id
+    map_image: map_image_id
+    BoxLayout:
+        orientation: 'vertical'
+
+        GridLayout:
+            cols: 4
+            size_hint_y: None
+            height: 30
+
+            TextInput:
+                id: coord1_input_id
+                text: "39.272100, -2.004396"
+                multiline: False
+
+            Button:
+                text: 'Paste'
+                on_press: root.handle_paste(coord1_input_id)
+
+            TextInput:
+                id: coord2_input_id
+                text: "39.271664, -2.003889"
+                multiline: False
+
+            Button:
+                text: 'Paste'
+                on_press: root.handle_paste(coord2_input_id)
+
+        Image:
+            id: map_image_id
+            source: 'map_placeholder.png'
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+
+            Button:
+                text: 'Select Image'
+                on_press: root.manager.current = 'process_image'
+
+            Button:
+                text: 'Reload Image'
+                on_press: root.reload_image(self)
