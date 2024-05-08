@@ -76,7 +76,7 @@ def create_image_detection(contours, img, generate_extra_data):
         jsonMap = FiveMap("PruebaMapa")
         transform = ""
 
-        with rasterio.open(str(base_dir / "tmp" / "geolocated.tiff")) as dataset:
+        with rasterio.open(str(base_dir / "out" / "geolocated.tiff")) as dataset:
             transform = dataset.transform
     for contour in contours:
         # Calcular el área del contorno
