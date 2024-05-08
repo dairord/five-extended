@@ -1,0 +1,20 @@
+# start_menu.kv
+<StartMenu>:
+  BoxLayout:
+    orientation: 'vertical'
+
+    Label:
+      text: 'FIVE map generator'
+
+    Button:
+      text: 'New project'
+      on_press: root.new_project(self)
+
+    Button:
+      text: 'Load project'
+      on_press: root.load_project(self)
+      
+    Button:
+      text: 'See projects'
+
+    

@@ -3,6 +3,7 @@
     coord1_input: coord1_input_id
     coord2_input: coord2_input_id
     map_image: map_image_id
+    switch: switch_id
     BoxLayout:
         orientation: 'vertical'
 
@@ -13,21 +14,31 @@
 
             TextInput:
                 id: coord1_input_id
-                text: "39.272100, -2.004396"
+                text: "39.489113, -0.514737"
                 multiline: False
 
             Button:
                 text: 'Paste'
-                on_press: root.handle_paste(coord1_input_id)
+                on_press: root.handle_paste(self, coord1_input_id)
 
             TextInput:
                 id: coord2_input_id
-                text: "39.271664, -2.003889"
+                text: "39.488820, -0.514083"
                 multiline: False
 
             Button:
                 text: 'Paste'
-                on_press: root.handle_paste(coord2_input_id)
+                on_press: root.handle_paste(self, coord2_input_id)
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, None
+
+            Label:
+                text: 'Search Motor: MapTiler' if switch_id.active else 'Search Motor: Google'
+                
+            Switch:
+                id: switch_id
+                active: True
 
         Image:
             id: map_image_id
@@ -39,7 +50,7 @@
 
             Button:
                 text: 'Select Image'
-                on_press: root.manager.current = 'process_image'
+                on_press: root.next_window(self)
 
             Button:
                 text: 'Reload Image'

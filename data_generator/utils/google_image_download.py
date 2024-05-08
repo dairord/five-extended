@@ -11,6 +11,7 @@ prefs_path = os.path.join(parent_dir, "preferences.json")
 
 
 def download_tile(url, headers, channels):
+    print(url)
     response = requests.get(url, headers=headers)
     arr = np.asarray(bytearray(response.content), dtype=np.uint8)
 
@@ -19,8 +20,6 @@ def download_tile(url, headers, channels):
     return cv2.imdecode(arr, -1)
 
 
-# Mercator projection
-# https://developers.google.com/maps/documentation/javascript/examples/map-coordinates
 def project_with_scale(lat: float, lon: float, scale):
     siny = np.sin(lat * np.pi / 180)
     siny = min(max(siny, -0.9999), 0.9999)
@@ -29,7 +28,9 @@ def project_with_scale(lat: float, lon: float, scale):
     return x, y
 
 
-def download_image_less(lat1: float, lon1: float, lat2: float, lon2: float):
+def download_image_less(
+    lat1: float, lon1: float, lat2: float, lon2: float, use_map_tiler
+):
     zoom = 21
     with open(os.path.join(parent_dir, "preferences.json"), "r", encoding="utf-8") as f:
         prefs = json.loads(f.read())
@@ -39,16 +40,20 @@ def download_image_less(lat1: float, lon1: float, lat2: float, lon2: float):
     else:
         channels = 3
 
+    if use_map_tiler:
+        url = "url3"
+    else:
+        url = "url"
     return download_image(
         lat1,
         lon1,
         lat2,
         lon2,
         zoom,
-        prefs["url"],
+        prefs[url],
         prefs["headers"],
         prefs["tile_size"],
-        channels, # type: ignore
+        channels,  
     )
 
 
@@ -61,7 +66,7 @@ def download_image(
     url: str,
     headers: dict,
     tile_size: int = 256,
-    channels: str = 3, # type: ignore
+    channels: str = 3,  
 ) -> np.ndarray:
     """
     Downloads a map region. Returns an image stored either in BGR or BGRA as a `numpy.ndarray`.
@@ -101,7 +106,7 @@ def download_image(
 
     img_w = abs(tl_pixel_x - br_pixel_x)
     img_h = br_pixel_y - tl_pixel_y
-    img = np.ndarray((img_h, img_w, channels), np.uint8) # type: ignore
+    img = np.ndarray((img_h, img_w, channels), np.uint8)  # type: ignore
 
     def build_row(row_number):
         for j in range(tl_tile_x, br_tile_x + 1):

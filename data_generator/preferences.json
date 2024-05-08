@@ -1,9 +1,11 @@
 {
   "url": "https://mt.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
   "url2": "https://a.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
+  "url3": "https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}.jpg?key=SCfiaKdgX6tLDVBemuVv",
+  "url4": "https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=SCfiaKdgX6tLDVBemuVv",
   "tile_size": 256,
   "tile_format": "jpg",
-  "dir": "c:\\Users\\dairo\\Desktop\\five-main\\src\\tools\\data_generator\\images",
+  "dir": "c:\\Users\\dairo\\tfg\\five-extended\\data_generator\\views\\images",
   "headers": {
     "cache-control": "max-age=0",
     "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"99\", \"Google Chrome\";v=\"99\"",

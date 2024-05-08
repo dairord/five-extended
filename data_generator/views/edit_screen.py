@@ -1,152 +1,138 @@
-from kivy.uix.screenmanager import ScreenManager, Screen
-import json
-import os
-import re
+from pathlib import Path
+from kivy.uix.screenmanager import Screen
 import cv2
-from kivy.app import App
 from kivy.lang import Builder
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image
-from kivy.uix.popup import Popup
-from kivy.uix.label import Label
 from kivy.core.clipboard import Clipboard
 from kivy.properties import ObjectProperty
-from functools import partial
-from PIL import Image, ImageTk
+from PIL import Image
 import numpy as np
-from utils.image_transformations import create_mask, create_otsu
+from utils.image_transformations import (
+    create_mask,
+    create_otsu,
+    find_and_sort_contours,
+    create_image_detection,
+    write_files,
+)
 import time
 
-Builder.load_file('views/edit_screen.kv')
+base_dir = Path(__file__).parent.parent
+Builder.load_file(str(base_dir / "views" / "edit_screen.kv" ))
 
 class EditScreen(Screen):
-    global original_image_path, modified_image_path, original_image, modified_image
-    global hue, saturation, value, rotation
-    global active_mask, active_detection
-
-    active_mask = False
-    active_detection = False
-
-    hue = 70
-    saturation = 255
-    value = 50
-    rotation = 180
-    def on_pre_enter(self, *args):
-        super().on_pre_enter(*args)
-        global original_image_path, modified_image_path, original_image, modified_image
-        # Access the shared image_path from the manager
-        image_path = self.manager.image_path
-        # If there's a path available, update the Image widget's source
-        if image_path:
-            modified_image_path = "tmp/modified.png"
-            original_image_path = image_path
-            modified_image = Image.open(original_image_path)
-            original_image = Image.open(original_image_path)
-            modified_image.save(modified_image_path)
-            self.ids.map_image.source = modified_image_path
-
-    # def update_map_image(self, instance, value):
-    #     # Update the Image widget's source when image_path changes
-    #     # self.ids.map_image.source = value
-    #     self.girar(value - 180)
-
-    # def on_pre_leave(self, *args):
-    #     # Unbind the property when leaving the screen to avoid unnecessary updates
-    #     self.manager.unbind(image_path=self.update_map_image)
-
-
-    def girar(self, angulo):
-        global modified_image_path, original_image, rotation
-        rotation = angulo
-        rotatedImage = original_image.rotate(angulo - 180)
-        rotatedImage.save(modified_image_path)
-        # Reload the image to apply the rotation
-        self.ids.map_image.reload()
-    
-    def update_mask(self):
-        global original_image_path, modified_image_path, hue, saturation, value
-        upperbound = np.array([hue, saturation, value])  
-        lowerbound = np.array([0, 0, 0])
-        lowerbound = lowerbound.astype(np.uint8)
-        upperbound = upperbound.astype(np.uint8)
-        img = cv2.imread(original_image_path)
-        mask = create_mask(img, lowerbound, upperbound)
-        cv2.imwrite(modified_image_path, mask)
-        modified_image = Image.open(modified_image_path)
-        rotated_image = modified_image.rotate(rotation - 180)
-        rotated_image.save(modified_image_path)
-        self.ids.map_image.reload()
-
-
-    def update_detection(self):
-        global original_image_path, modified_image_path, hue, saturation, value
-        upperbound = np.array([hue, saturation, value])  
-        lowerbound = np.array([0, 0, 0])
-        lowerbound = lowerbound.astype(np.uint8)
-        upperbound = upperbound.astype(np.uint8)
-        img = cv2.imread(original_image_path)
-        mask = create_mask(img, lowerbound, upperbound)
-        otsu = create_otsu(mask)
-        cv2.imwrite(modified_image_path, otsu)
-        modified_image = Image.open(modified_image_path)
-        rotated_image = modified_image.rotate(rotation - 180)
-        rotated_image.save(modified_image_path)
-        self.ids.map_image.reload()
-
-    def toggle_mask(self):
-        global modified_image_path, hue, saturation, value, active_mask, active_detection
-        if(active_detection):
-            pass
-        upperbound = np.array([hue, saturation, value])  
-        lowerbound = np.array([0, 0, 0])
-        lowerbound = lowerbound.astype(np.uint8)
-        upperbound = upperbound.astype(np.uint8)
-
-        img = cv2.imread(modified_image_path)
-        mask = create_mask(img, lowerbound, upperbound)
-        cv2.imwrite(modified_image_path, mask)
-        self.ids.map_image.reload()
-        active_mask = not active_mask
-        pass
-
-    def toggle_detection(self):
-        global modified_image_path, active_detection, active_mask
-        if(active_mask):
-            pass
-        upperbound = np.array([hue, saturation, value])  
-        lowerbound = np.array([0, 0, 0])
-        lowerbound = lowerbound.astype(np.uint8)
-        upperbound = upperbound.astype(np.uint8)
-
-        img = cv2.imread(modified_image_path)
-        mask = create_mask(img, lowerbound, upperbound)
-        otsu = create_otsu(mask)
-        cv2.imwrite(modified_image_path, otsu)
-        self.ids.map_image.reload()
-        active_detection = not active_detection
-        pass
-
-    def update_hue(self, valor):
-        global hue
-        hue = valor
-        if (active_mask): self.update_mask()
-        if (active_detection): self.update_detection()
-        
-
-    def update_saturation(self, valor):
-        global saturation
-        saturation = valor
-        if (active_mask): self.update_mask()
-        if (active_detection): self.update_detection()
-
-    def update_value(self, valor):
-        global value
-        value = valor
-        if (active_mask): self.update_mask()
-        if (active_detection): self.update_detection()
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.original_image_path = None
+        self.modified_image_path = None
+        self.original_image = None
+        self.modified_image = None
+        self.hue = 70
+        self.saturation = 255
+        self.value = 50
+        self.rotation = 180
+        self.active_mask = False
+        self.active_detection = False
+        self.active_final = False
+
+    def on_pre_enter(self, *args):
+        super().on_pre_enter(*args)
+        image_path = self.manager.image_path  
+
+        if image_path:
+            self.modified_image_path = str(base_dir / "tmp" / "modified.png" )
+            self.original_image_path = image_path
+            self.load_images()
+            self.refresh_image()
+
+    def load_images(self):
+        try:
+            self.original_image = Image.open(self.original_image_path)
+            self.modified_image = Image.open(self.original_image_path)
+            self.modified_image.save(self.modified_image_path)
+            self.ids.map_image.source = self.modified_image_path
+        except IOError:
+            print("Error in loading images")
+
+    def rotate_image(self, angle):
+        if self.active_detection or self.active_mask:
+            self.rotation = angle
+            self.modified_image = Image.open(self.modified_image_path)
+            print(angle - 180)
+            rotated_image = self.modified_image.rotate(angle - 180)
+            
+        elif self.original_image:
+            self.rotation = angle
+            rotated_image = self.original_image.rotate(angle - 180)
+
+        if not self.active_final:
+            rotated_image.save(self.modified_image_path)
+            self.refresh_image()
+
+    def apply_processing(self, processing_func, *args):
+        if self.original_image:
+            img = cv2.imread(self.original_image_path)
+            processed_img = processing_func(img, *args)
+            cv2.imwrite(self.modified_image_path, processed_img)
+            self.refresh_image()
+
+    def make_mask(self, img, hue, saturation, value ):
+        upperbound = np.array([hue, saturation, value])
+        lowerbound = np.array([0, 0, 0])
+        lowerbound = lowerbound.astype(np.uint8)
+        upperbound = upperbound.astype(np.uint8)
+        mask = create_mask(img, lowerbound, upperbound)
+        return mask
+
+    def make_detection(self, img, hue, saturation, value):
+        mask = self.make_mask(img, hue, saturation, value)
+        otsu = create_otsu(mask)
+        return otsu
+    
+    def make_final(self, img, hue, saturation, value):
+        otsu = self.make_detection(img, hue, saturation, value)
+        contours = find_and_sort_contours(otsu)
+
+        create_image_detection(contours, img, True)
+        return img
+
+    def refresh_image(self):
+        self.ids.map_image.reload()
+
+    def update_hsv(self, hue=None, saturation=None, value=None):
+        if hue is not None:
+            self.hue = hue
+        if saturation is not None:
+            self.saturation = saturation
+        if value is not None:
+            self.value = value
+        if self.active_mask or self.active_detection:
+            self.apply_feature()
+
+    def toggle_feature(self, feature):
+        if feature == "mask":
+            self.active_detection = False
+            self.active_final = False
+            self.active_mask = not self.active_mask
+        elif feature == "detection":
+            self.active_mask = False
+            self.active_final = False
+            self.active_detection = not self.active_detection
+        elif feature == "final":
+            self.active_mask = False
+            self.active_detection = False
+            self.active_final = not self.active_final
+            if self.active_final:
+                self.apply_processing(self.make_final, self.hue, self.saturation, self.value)            
+        self.apply_feature()
+            
+    def apply_feature(self):
+        if self.active_mask:
+            self.apply_processing(self.make_mask, self.hue, self.saturation, self.value)
+        elif self.active_detection:
+            self.apply_processing(self.make_detection, self.hue, self.saturation, self.value)
+        self.rotate_image(self.rotation)
+
+
+    def generate_files(self):
+        write_files(self.modified_image_path, self.hue, self.saturation, self.value)
+
