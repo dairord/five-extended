@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 import rasterio
-from rasterio.transform import from_bounds
+from rasterio.transform import from_bounds, Affine
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from shapely.geometry import box
 import numpy as np
@@ -10,9 +10,7 @@ from pathlib import Path
 global name, lat1, lon1, lat2, lon2
 base_dir = Path(__file__).parent.parent
 
-
-def generate_tiff(image_path, lat1, lon1, lat2, lon2):
-
+def generate_tif(image_path, lat1, lon1, lat2, lon2):
     with rasterio.open(image_path) as src:
         img_data = src.read()
         img_meta = src.meta
@@ -30,21 +28,20 @@ def generate_tiff(image_path, lat1, lon1, lat2, lon2):
                 "crs": "+proj=latlong",
             }
         )
-        
+
         tif_path = str(base_dir / "out" / "geolocated.tif")
         with rasterio.open(tif_path, "w", **img_meta) as dst:
             dst.write(img_data)
     return True
 
-
-def add_elevations_to_tiff():
-    if not os.path.exists(str(base_dir / "utils" / "spain.tif")):
+def add_elevations_to_tiff(elevation_tif_path, rotation):
+    if not os.path.exists(elevation_tif_path):
         print("yes")
         # merged_elevations_path = get_merged_elevation()
-        
+
     if reproject_tiff(str(base_dir / "out" / "geolocated.tif"), str(base_dir / "out" / "geolocated_reproject.tif")):
         with rasterio.open(str(base_dir / "out" / "geolocated_reproject.tif")) as reproject_tif, rasterio.open(
-            str(base_dir / "utils" / "spain.tif")
+            str(elevation_tif_path)
         ) as elevation_source:
             assert reproject_tif.crs == elevation_source.crs, "CRS mismatch between TIFF and DEM"
 
@@ -52,12 +49,13 @@ def add_elevations_to_tiff():
             max_elevation = np.max(source_elevation_data)
 
             # Initialize elevation band
-            elevation_band = np.zeros((1, reproject_tif.height, reproject_tif.width), dtype=np.float32)
-
+            elevation_band = np.zeros((reproject_tif.height, reproject_tif.width), dtype=np.float32)
+            # rotated_transform = rotate_transform(reproject_tif.transform, rotation, reproject_tif.width, reproject_tif.height)
+            rotated_transform = reproject_tif.transform
             for row in range(reproject_tif.height):
                 for col in range(reproject_tif.width):
                     # Convert TIFF pixel coordinates to geographic coordinates
-                    lon, lat = pixel_to_geo(col, row, reproject_tif.transform)
+                    lon, lat = pixel_to_geo(col, row, rotated_transform)
 
                     # DEM = Digital Elevation Model
                     # Convert geographic coordinates to DEM pixel coordinates
@@ -67,48 +65,60 @@ def add_elevations_to_tiff():
                     if 0 <= dem_row < elevation_source.height and 0 <= dem_col < elevation_source.width:
                         elevation_value = source_elevation_data[dem_row, dem_col]
                         corrected_elevation_value = max_elevation - elevation_value
-                        elevation_band[0, row, col] = corrected_elevation_value
-                        if row % 100 == 0 and col % 100 == 0:  # Adjust sampling as needed
-                            original_value = source_elevation_data[dem_row, dem_col]
-                            corrected_value = max_elevation - original_value
-                            print(f"Original: {original_value}, Corrected: {corrected_value}")
-
+                        elevation_band[row, col] = corrected_elevation_value
+                        if row % 100 == 0 and col % 100 == 0: 
+                            print(f"Original: {elevation_value}, Corrected: {corrected_elevation_value}")
+            print("[INFO] Transformation rotation successful.")
             # Prepare updated TIFF metadata
             new_meta = reproject_tif.meta.copy()
             new_meta.update(count=reproject_tif.count + 1)
 
+            print("[INFO] Transformation rotation successful2.")
             # Write updated TIFF
             with rasterio.open(
                 str(base_dir / "out" / "geolocated_elevations.tif"), "w", **new_meta
             ) as new_tiff:
-                new_tiff.write(reproject_tif.read(), indexes=range(1, reproject_tif.count + 1))
-                new_tiff.write(elevation_band[0, :, :], reproject_tif.count + 1)
+                for i in range(1, reproject_tif.count + 1):
+                    new_tiff.write(reproject_tif.read(i), i)
+                new_tiff.write(elevation_band, reproject_tif.count + 1)
 
         return True
     return False
 
-
 def pixel_to_geo(x, y, transform):
-    longitude = transform[0] * x + transform[1] * y + transform[2]
-    latitude = transform[3] * x + transform[4] * y + transform[5]
-    return (longitude, latitude)
-
+    """Convert pixel coordinates to geographic coordinates using an affine transform."""
+    return transform * (x, y)
 
 def pixel_to_elevation(x, y):
+    try:
+        with rasterio.open(str(base_dir / "out" / "geolocated_elevations.tif")) as rasterio_tiff:
+            elevation_band_index = rasterio_tiff.count
+            elevation_value = rasterio_tiff.read(elevation_band_index)[y, x]
+            return elevation_value
+    except:
+        print("Error in reading elevation value {x} {y}")
+        return 0
     
-    with rasterio.open(str(base_dir / "out" / "geolocated_elevations.tif")) as rasterio_tiff:
-        elevation_band_index = rasterio_tiff.count
-        elevation_value = rasterio_tiff.read(elevation_band_index)[y, x]
-        return elevation_value
-
-
-def point_to_square_coordinates(x, y, w, h, t):
-    top_left_geo = pixel_to_geo(x, y, t)
-    top_right_geo = pixel_to_geo(x + w, y, t)
-    bottom_right_geo = pixel_to_geo(x + w, y + h, t)
-    bottom_left_geo = pixel_to_geo(x, y + h, t)
+def point_to_square_coordinates(x, y, width, height, transform):
+    top_left_geo = pixel_to_geo(x, y, transform)
+    top_right_geo = pixel_to_geo(x + width, y, transform)
+    bottom_right_geo = pixel_to_geo(x + width, y + height, transform)
+    bottom_left_geo = pixel_to_geo(x, y + height, transform)
     return (top_left_geo, top_right_geo, bottom_right_geo, bottom_left_geo)
 
+def rotate_transform(transform, angle_degrees, img_width, img_height):
+    # Reverse the rotation to align with original coordinates
+    rotation_matrix = Affine.rotation(angle_degrees)
+    # To rotate around the center of the image
+    center_transform = (
+        Affine.translation(-img_width / 2, -img_height / 2) *
+        rotation_matrix *
+        Affine.translation(img_width / 2, img_height / 2)
+    )
+    return transform * center_transform
+
+def trim_transform(transform, trim_x, trim_y):
+    return transform * Affine.translation(-trim_x, -trim_y)
 
 def reproject_tiff(source_tif_path, output_tif_path):
     with rasterio.open(source_tif_path) as source_tif:

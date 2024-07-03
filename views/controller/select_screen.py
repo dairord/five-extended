@@ -13,16 +13,24 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from utils.elevation_manager import start_elevation_download
 from utils.google_image_download import download_image_less
+from utils.CNIGIndexer import getIndex
+from utils.CNIGDownloader import download_elevation
+from utils.TextSearcher import get_tif_list
 from kivy.core.clipboard import Clipboard
 from kivy.properties import ObjectProperty
 from functools import partial
-from utils.tiffGenerator import generate_tiff, add_elevations_to_tiff
+from utils.tiffGenerator import generate_tif
 import time
+import concurrent.futures
+import threading
 
 # print(os.getcwd())
-base_dir = Path(__file__).parent.parent
-Builder.load_file(str(base_dir / "views" / "selectscreen.kv"))
+local_dir = Path(__file__).parent.parent
+base_dir = Path(__file__).parent.parent.parent
+
+Builder.load_file(str(local_dir / "front" / "select_screen.kv"))
 prefs_path = os.path.join(base_dir, "../preferences.json")
 default_prefs = {
     "url": "https://mt.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
@@ -91,9 +99,17 @@ class SelectScreen(Screen):
         lon1 = float(lon1)
         lat2 = float(lat2)
         lon2 = float(lon2)
-        generate_tiff(tmp_img_path, lat1, lon1, lat2, lon2)
-        add_elevations_to_tiff()
-        self.manager.current = "process_image"
+        generate_tif(tmp_img_path, lat1, lon1, lat2, lon2)
+        self.manager.square_coordinates = ((lon1, lat1), (lon2, lat1), (lon2, lat2), (lon1, lat2))
+
+        # add_elevations_to_tiff(str(base_dir / "utils" / "spain.tif"))
+        self.manager.current = "image_transformation"
+
+    # def get_CNIG_elevations():
+    #     coordinates = [lat1, lon1], [lat2, lon1], [lat2, lon2], [lat1, lon2]
+    #     if getIndex(coordinates):
+    #         for tif_code in get_tif_list():
+    #             download_elevation(tif_code)
 
     def reload_image(self, instance):
         global lat1, lon1, lat2, lon2, tmp_img_path

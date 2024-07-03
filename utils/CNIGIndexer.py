@@ -6,11 +6,21 @@ import certifi
 import os
 import http.client as http_client
 import time
+import re
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 os.environ["REQUESTS_CA_BUNDLE"] = os.path.join(certifi.where())
 http_client.HTTPConnection.debuglevel = 1
 base_dir = Path(__file__).parent.parent
+
+
+
+def get_tif_list(elevation_indexes):
+    if isinstance(elevation_indexes, bytes):
+        elevation_indexes = elevation_indexes.decode('utf-8')
+    pattern = r'linkDescDir_([a-zA-Z0-9]+)'
+    matches = re.findall(pattern, elevation_indexes)
+    return matches
 
 url = "https://centrodedescargas.cnig.es/CentroDescargas/resultadosArchivos"
 
@@ -44,7 +54,7 @@ cookies = {
     "__utma":"103291538.1378021722.1707671118.1707671145.1712599149.2"
 }
 
-def buildPetitionBody(coordinates):
+def buildPetitionBody(coordinates, resolution_code):
     ((x1, y1), (x2, y2), (x3, y3), (x4, y4)) = coordinates
 
     return {
@@ -71,8 +81,8 @@ def buildPetitionBody(coordinates):
     }),
     'numPagina': '1',
     'numTotalReg': '30',
-    'codSerie': '02107',
-    'series': '02107',
+    'codSerie': resolution_code,
+    'series': resolution_code,
     'codProvAv': '',
     'codIneAv': '',
     'codComAv': '',
@@ -80,30 +90,54 @@ def buildPetitionBody(coordinates):
     'todaEsp': '',
     'todoMundo': '',
     'tipoBusqueda': 'VI',
+    'contiene': 'ETRS89',
     'idProcShape': '',
     'orderBy': ''
 }
 
-def getIndex(coordinates):
-    body = buildPetitionBody(coordinates)
+
+# Mapas 25m
+    # 'codSerie': '02107',
+    # 'series': '02107',
+# Mapas 5m
+    # 'codSerie': 'MDT05',
+    # 'series': 'MDT05',
+# Mapas 2m
+    # 'codSerie': 'MDT02',
+    # 'series': 'MDT02',
+
+
+
+
+def getIndex(coordinates, resolution_code):
+    body = buildPetitionBody(coordinates, resolution_code)
     headers['Content-Length'] = str(len(requests.models.RequestEncodingMixin._encode_params(body)))
 
     with requests.Session() as session:
         session.get('https://centrodedescargas.cnig.es/CentroDescargas/resultadosArchivos', verify=False)
-        # session.cookies.update(cookies)
         
         response = session.post(url, data=body, headers=headers, verify=False)
-        # print(response.status_code)
-        # print(response.headers)
         if response.ok:
             with open(str(base_dir / "elevations" / "indexer.html"), "wb") as file:
                 file.write(response.content)
+            return response.content
         else:
-            print("Failed to download the content. Status code:", response.status_code)
+            return None
 
 
-coords = [-5.101967049436507, 40.588499937840766], [-5.08643003520145, 41.415137431052784], [-3.7269412896340524, 41.397657422653964], [-3.7075200218402324, 40.57965022364732]
-for i in range(0, 5):
+# coords2 = [-5.101967049436507, 40.588499937840766], [-5.08643003520145, 41.415137431052784], [-3.7269412896340524, 41.397657422653964], [-3.7075200218402324, 40.57965022364732]
 
-    getIndex(coords)
-    time.sleep(100)
+# coords = [
+#     [-0.514737, 39.489113],
+#     [-0.514083, 39.489113],
+#     [-0.514083, 39.48882],
+#     [-0.514737, 39.48882]
+# ]
+# for i in range(0, 5):
+
+#     res = getIndex(coords2)
+#     if res != None:
+#         print(get_tif_list(res))
+#     time.sleep(100)
+
+

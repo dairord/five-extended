@@ -1,0 +1,91 @@
+<EditScreen>:
+    project_name_input: project_name_input_id
+    generate_button: generate_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'select_image'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            
+            TextInput:
+                id: project_name_input_id
+                text: "Project name"
+                multiline: False
+                height: '48dp'
+
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: '48dp'
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Hue'    
+                    Slider:
+                        id: hue_slider
+                        min: 0
+                        max: 179
+                        value: 70
+                        on_value: root.update_hsv(hue=self.value)
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Saturation'
+                    Slider:
+                        id: saturation_slider
+                        min: 0
+                        max: 255
+                        value: 255
+                        on_value: root.update_hsv(saturation=self.value)
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Valor'
+                    Slider:
+                        id: value_slider
+                        min: 0
+                        max: 255
+                        value: 50
+                        on_value: root.update_hsv(value=self.value)
+
+        BoxLayout:
+            Image:
+                id: map_image
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: None
+                width: '120dp'
+                
+                Button:
+                    text: 'Show detection mask'
+                    on_release: root.toggle_feature("mask")
+                
+                Button:
+                    text: 'Show Detections'
+                    on_release: root.toggle_feature("detection")
+                
+                Button:
+                    text: 'Show Final'
+                    on_release: root.toggle_feature("final")
+                
+        BoxLayout:
+            size_hint_y: None
+            height: '48dp'
+            
+            Button:
+                id: generate_button
+                text: 'Generate'
+                on_release: root.save_to_project_folder()
+                disabled: True

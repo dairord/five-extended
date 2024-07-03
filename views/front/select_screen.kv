@@ -1,12 +1,23 @@
-# selectscreen.kv
+# select_screen.kv
+    #   text: "39.489113, -0.514737"
+    #             text: "39.488820, -0.514083"
 <SelectScreen>:
     coord1_input: coord1_input_id
     coord2_input: coord2_input_id
     map_image: map_image_id
     switch: switch_id
+
     BoxLayout:
         orientation: 'vertical'
 
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'start_menu'
+                   
         GridLayout:
             cols: 4
             size_hint_y: None
@@ -25,7 +36,6 @@
                 id: coord2_input_id
                 text: "39.488820, -0.514083"
                 multiline: False
-
             Button:
                 text: 'Paste'
                 on_press: root.handle_paste(self, coord2_input_id)
@@ -55,3 +65,16 @@
             Button:
                 text: 'Reload Image'
                 on_press: root.reload_image(self)
+#    TextInput:
+#                 id: coord1_input_id
+#                 text: "39.567191, -2.080372"
+#                 multiline: False
+
+#             Button:
+#                 text: 'Paste'
+#                 on_press: root.handle_paste(self, coord1_input_id)
+
+#             TextInput:
+#                 id: coord2_input_id
+#                 text: "39.566335, -2.079616"
+#                 multiline: False

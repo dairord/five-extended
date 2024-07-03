@@ -22,7 +22,7 @@ import numpy as np
 
 # print(Path(__file__).parent / "start_menu.kv")
 
-Builder.load_file(str(Path(__file__).parent / "start_menu.kv"))
+Builder.load_file(str(Path(__file__).parent.parent / "front" / "start_menu.kv"))
 
 
 class StartMenu(Screen):

@@ -5,8 +5,8 @@ import os
 
 import rasterio
 from utils.FiveMapGenerator import FiveMap
-from utils.tiffGenerator import point_to_square_coordinates, pixel_to_elevation
-from utils.kmlGenerator import KMLDocument
+from utils.tiffGenerator import point_to_square_coordinates, pixel_to_elevation, pixel_to_geo,rotate_transform
+from utils.kmlGenerator import KMLDocument, File_Type
 
 base_dir = Path(__file__).parent.parent
 distancia = 48
@@ -45,13 +45,13 @@ def create_otsu(masked_img):
     return thr
 
 
-def create_image_detection(contours, img, generate_extra_data):
-    x, y, w, h = cv2.boundingRect(contours[0])
+def create_image_detection(contours, img: cv2.typing.MatLike, project_name, generate_extra_data, rotation):
+    x, y, width, height = cv2.boundingRect(contours[0])
     miny = y
     maxy = y
     minx, maxx = x, x
     for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
+        x, y, width, height = cv2.boundingRect(contour)
         if y < miny:
             miny = y
         if y > maxy:
@@ -71,13 +71,19 @@ def create_image_detection(contours, img, generate_extra_data):
     terreno[:][:] = " "
     ocupacion = np.empty((nlineasy, nlineasx), dtype=int)
     ocupacion[:][:] = 0
-    if generate_extra_data:
-        kml = KMLDocument("Pruebita")
-        jsonMap = FiveMap("PruebaMapa")
-        transform = ""
+    transform = ""
 
-        with rasterio.open(str(base_dir / "out" / "geolocated.tif")) as dataset:
-            transform = dataset.transform
+    with rasterio.open(str(base_dir / "out" / "geolocated.tif")) as dataset:
+        transform = dataset.transform
+        transform = rotate_transform(transform, rotation, img.shape[1], img.shape[0])
+    if generate_extra_data:
+        kml = KMLDocument(project_name)
+        longitude, latitude = pixel_to_geo(0,0, transform)
+        kml.add_coordinates(latitude, longitude)
+        longitude, latitude = pixel_to_geo(img.shape[1] - 1,img.shape[0] - 1, transform)
+        kml.add_coordinates(latitude, longitude)
+        kml.add_extra_data(File_Type.ORIGINAL_IMAGE, "original_image_" +project_name)
+        jsonMap = FiveMap("PruebaMapa")
     for contour in contours:
         # Calcular el área del contorno
         area = cv2.contourArea(contour)
@@ -91,17 +97,17 @@ def create_image_detection(contours, img, generate_extra_data):
             cy = int(M["m01"] / M["m00"])
 
             # Encontramos objeto
-            x, y, w, h = cv2.boundingRect(contour)
+            x, y, width, height = cv2.boundingRect(contour)
 
             # Transformamos el punto en 4 coordenadas y sacamos la elevación
-            coordinates = point_to_square_coordinates(x, y, w, h, transform)
+            coordinates = point_to_square_coordinates(x, y, width, height, transform)
             elevation = pixel_to_elevation(x, y)
             # Quitamos un 0 a todo
             if area <= 210:  # 70:
                 letra = "B "
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 0), 2)  # Negro
+                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 0, 0), 2)  # Negro
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ff000000",
                         "Vine growth 00",
@@ -115,9 +121,9 @@ def create_image_detection(contours, img, generate_extra_data):
                     )
             elif area <= 290:  # 120:
                 letra = "C "
-                cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)  # Azul
+                cv2.rectangle(img, (x, y), (x + width, y + height), (255, 0, 0), 2)  # Azul
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ffff0000",
                         "Vine growth 01",
@@ -131,9 +137,9 @@ def create_image_detection(contours, img, generate_extra_data):
                     )
             elif area <= 370:  # 170:
                 letra = "D "
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Rojo
+                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 0, 255), 2)  # Rojo
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ff0000ff",
                         "Vine growth 02",
@@ -147,9 +153,9 @@ def create_image_detection(contours, img, generate_extra_data):
                     )
             elif area <= 450:  # 210:
                 letra = "E "
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)  # Verde
+                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 255, 0), 2)  # Verde
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ff00ff00",
                         "Vine growth 03",
@@ -164,10 +170,10 @@ def create_image_detection(contours, img, generate_extra_data):
             elif area <= 530:  # 250:
                 letra = "G "
                 cv2.rectangle(
-                    img, (x, y), (x + w, y + h), (255, 255, 0), 2
+                    img, (x, y), (x + width, y + height), (255, 255, 0), 2
                 )  # Azul Claro
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ffffff00",
                         "Vine growth 04",
@@ -181,9 +187,9 @@ def create_image_detection(contours, img, generate_extra_data):
                     )
             elif area <= 610:  # 290:
                 letra = "H "
-                cv2.rectangle(img, (x, y), (x + w, y + h), (255, 255, 255), 2)  # Blanco
+                cv2.rectangle(img, (x, y), (x + width, y + height), (255, 255, 255), 2)  # Blanco
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ffffffff",
                         "Vine growth 05",
@@ -197,9 +203,9 @@ def create_image_detection(contours, img, generate_extra_data):
                     )
             elif area <= 690:  # 330:
                 letra = "I "
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 2)  # Amarillo
+                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 255, 255), 2)  # Amarillo
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ff00ffff",
                         "Vine growth 06",
@@ -213,9 +219,9 @@ def create_image_detection(contours, img, generate_extra_data):
                     )
             else:
                 letra = "J "
-                cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 255), 2)  # Rosa
+                cv2.rectangle(img, (x, y), (x + width, y + height), (255, 0, 255), 2)  # Rosa
                 if generate_extra_data:
-                    kml.addPolygon(
+                    kml.add_polygon(
                         coordinates,
                         "ffff00ff",
                         "Vine growth 07",
@@ -228,11 +234,11 @@ def create_image_detection(contours, img, generate_extra_data):
                         elevation,
                     )
             try:
-                locate_char_v2(x, y, w, h, letra, terreno, ocupacion, nlineasy, nlineasx)
+                locate_char_v2(x, y, width, height, letra, terreno, ocupacion, nlineasy, nlineasx)
             except:
-                print(f"Ignoring letter {letra} with coordinates x:{x} y:{y} w:{w} h:{h}")
+                print(f"Ignoring letter {letra} with coordinates x:{x} y:{y} w:{width} h:{height}")
     if generate_extra_data:
-        with open(str(base_dir / "out" / "Detections.kml"), "w") as file:
+        with open(str(base_dir / "out" / "project.kml"), "w") as file:
             file.write(str(kml))
         with open(str(base_dir / "out" / "Map.json"), "w") as file:
             file.write(str(jsonMap))
@@ -333,7 +339,7 @@ def locate_char(x, y, w, h, letra, terreno, ocupacion):
                         terreno[PosY - i][PosX] = letra
 
 
-def write_files(imagen, hue, saturation, value):
+def write_files(imagen, project_name, hue, saturation, value, rotation):
     if os.path.exists("map.txt"):
         os.remove("map.txt")
 
@@ -355,7 +361,7 @@ def write_files(imagen, hue, saturation, value):
     # Find contours of the white regions in the image
     contours = find_and_sort_contours(thr)
 
-    terreno = create_image_detection(contours, img, True)
+    terreno = create_image_detection(contours, img, project_name, True, rotation)
     try:
         escribirTextoMatriz(terreno)
     except:
@@ -370,6 +376,7 @@ def write_files(imagen, hue, saturation, value):
         print("Filed saved at " + filtro)
     if cv2.imwrite(otsu, thr):
         print("Filed saved at " + otsu)
+    return True
 
 
 def calcular_centro(contour, esY):

@@ -1,0 +1,84 @@
+<ImageTransformation>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'select_image'
+                
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            padding: '10dp'
+            spacing: '10dp'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: '48dp'
+                padding: '10dp'
+                spacing: '10dp'
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Rotation'
+                    Slider:
+                        id: rotation_slider
+                        min: -180
+                        max: 180
+                        value: 0
+                        on_value: root.rotate_image(self.value)
+
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: '10dp'
+            spacing: '10dp'
+            Image:
+                id: map_image
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: None
+                width: '180dp'
+                padding: '10dp'
+                spacing: '10dp'
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'CNIG download settings'
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: '48dp'
+                        padding: '10dp'
+                        spacing: '10dp'
+                        Button:
+                            text: '25m'
+                            on_release: root.select_resolution(25)
+                        Button:
+                            text: '5m'
+                            on_release: root.select_resolution(5)
+                        Button:
+                            text: '2m'
+                            on_release: root.select_resolution(2)
+                    Button:
+                        text: 'Use your own file'
+                        on_release: root.use_own_file()
+                    Button:
+                        text: 'Download DEM'
+                        on_release: root.download_elevation()
+                
+        BoxLayout:
+            size_hint_y: None
+            height: '48dp'
+            padding: '10dp'
+            spacing: '10dp'
+            
+            Button:
+                text: 'Generate'
+                on_release: root.next_window()
