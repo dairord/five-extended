@@ -1,6 +1,9 @@
 # load_project.kv
 <LoadProject>:
     project_spinner: project_spinner_id
+    coord1: coord1Id
+    coord2: coord2Id
+    preview: preview
     BoxLayout:
         orientation: 'vertical'
 
@@ -33,7 +36,7 @@
 
                 Button:
                     text: 'Use project'
-                    height: 40
+                    height: 40  
                     on_press: root.edit_project_data()
 
             BoxLayout:
@@ -55,4 +58,4 @@
                     size_hint_y: 0.8
                     Image:
                         id: preview
-                        source: 'path/to/your/image.png'
+                        source: ''

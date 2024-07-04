@@ -6,7 +6,6 @@ from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.button import Button
 from utils.kmlGenerator import search_custom_fields_in_document, File_Type
 
@@ -17,6 +16,9 @@ Builder.load_file(str(local_dir / "front" / "load_project.kv" ))
 class LoadProject(Screen):
 
     project_spinner = ObjectProperty(None)
+    coord1 = ObjectProperty(None)
+    coord2 = ObjectProperty(None)
+    preview = ObjectProperty(None)
     projects_folder_path = str(base_dir / "projects")
     selected_project = ""
 
@@ -40,7 +42,7 @@ class LoadProject(Screen):
         self.on_pre_enter()
 
     def open_filechooser(self):
-        filechooser = FileChooserListView(dirselect=True)
+        filechooser = FileChooserListView(dirselect=True, path=str(base_dir))
         filechooser.bind(on_submit=self.on_file_select)
 
         layout = BoxLayout(orientation='vertical')
@@ -65,30 +67,38 @@ class LoadProject(Screen):
     def set_project_data(self, path):
         self.selected_project = path
         project_kml_path = Path(self.projects_folder_path) / self.selected_project / "project.kml"
-        print(project_kml_path)
         
         if project_kml_path.is_file():
             project_settings = [
                 File_Type.ORIGINAL_IMAGE.value,
                 File_Type.GENERATED_TIF.value,
-                File_Type.ELEVATION_TIF.value
+                File_Type.ELEVATION_TIF.value,
+                File_Type.COORDINATES.value
             ]
             kml_data = search_custom_fields_in_document(str(project_kml_path), project_settings)
 
             if File_Type.ORIGINAL_IMAGE.value in kml_data and len(kml_data[File_Type.ORIGINAL_IMAGE.value]) > 0:
                 self.original_path = Path(self.projects_folder_path) / self.selected_project / kml_data[File_Type.ORIGINAL_IMAGE.value][0]
+                self.preview.source = str(self.original_path)
             else:
-                self.original_path = None  # or some default value
+                self.original_path = None  
+
+            print(kml_data[File_Type.COORDINATES.value])
+            if File_Type.COORDINATES.value in kml_data and len(kml_data[File_Type.COORDINATES.value]) > 0:
+                self.coord1.text = kml_data[File_Type.COORDINATES.value][0]
+                self.coord2.text = kml_data[File_Type.COORDINATES.value][1]
+            else:
+                self.elevation_path = None  
 
             if File_Type.ELEVATION_TIF.value in kml_data and len(kml_data[File_Type.ELEVATION_TIF.value]) > 0:
                 self.elevation_path = Path(self.projects_folder_path) / self.selected_project / kml_data[File_Type.ELEVATION_TIF.value][0]
             else:
-                self.elevation_path = None  # or some default value
+                self.elevation_path = None  
 
             if File_Type.GENERATED_TIF.value in kml_data and len(kml_data[File_Type.GENERATED_TIF.value]) > 0:
                 self.tif_path = Path(self.projects_folder_path) / self.selected_project / kml_data[File_Type.GENERATED_TIF.value][0]
             else:
-                self.tif_path = None  # or some default value
+                self.tif_path = None  
 
 
     def edit_project_data(self):

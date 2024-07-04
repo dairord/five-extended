@@ -45,7 +45,7 @@ def create_otsu(masked_img):
     return thr
 
 
-def create_image_detection(contours, img: cv2.typing.MatLike, project_name, generate_extra_data, rotation):
+def create_image_detection(contours, img, project_name, generate_extra_data, rotation, latitude1, longitude1, latitude2, longitude2):
     x, y, width, height = cv2.boundingRect(contours[0])
     miny = y
     maxy = y
@@ -78,10 +78,10 @@ def create_image_detection(contours, img: cv2.typing.MatLike, project_name, gene
         transform = rotate_transform(transform, rotation, img.shape[1], img.shape[0])
     if generate_extra_data:
         kml = KMLDocument(project_name)
-        longitude, latitude = pixel_to_geo(0,0, transform)
-        kml.add_coordinates(latitude, longitude)
-        longitude, latitude = pixel_to_geo(img.shape[1] - 1,img.shape[0] - 1, transform)
-        kml.add_coordinates(latitude, longitude)
+        # longitude, latitude = pixel_to_geo(0,0, transform)
+        kml.add_coordinates(latitude1, longitude1)
+        # longitude, latitude = pixel_to_geo(img.shape[1] - 1,img.shape[0] - 1, transform)
+        kml.add_coordinates(latitude2, longitude2)
         kml.add_extra_data(File_Type.ORIGINAL_IMAGE, "original_image_" +project_name)
         jsonMap = FiveMap("PruebaMapa")
     for contour in contours:
@@ -339,7 +339,7 @@ def locate_char(x, y, w, h, letra, terreno, ocupacion):
                         terreno[PosY - i][PosX] = letra
 
 
-def write_files(imagen, project_name, hue, saturation, value, rotation):
+def write_files(imagen, project_name, hue, saturation, value, rotation, latitude1, longitude1, latitude2, longitude2):
     if os.path.exists("map.txt"):
         os.remove("map.txt")
 
@@ -361,7 +361,7 @@ def write_files(imagen, project_name, hue, saturation, value, rotation):
     # Find contours of the white regions in the image
     contours = find_and_sort_contours(thr)
 
-    terreno = create_image_detection(contours, img, project_name, True, rotation)
+    terreno = create_image_detection(contours, img, project_name, True, rotation, latitude1, longitude1, latitude2, longitude2)
     try:
         escribirTextoMatriz(terreno)
     except:

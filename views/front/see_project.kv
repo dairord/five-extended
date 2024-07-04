@@ -1,0 +1,23 @@
+<SeeProject>:
+    BoxLayout:
+        orientation: 'vertical'
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'start_menu'
+
+        FileChooserListView:
+            id: file_chooser
+            path: '../../projects'
+            filters: ['*.png', '*.jpg', '*.jpeg']
+            on_selection: app.update_images(file_chooser.selection)
+
+        ScrollView:
+            GridLayout:
+                id: image_grid
+                cols: 3
+                spacing: '10dp'
+                padding: '10dp'

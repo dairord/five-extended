@@ -64,16 +64,14 @@ def add_elevations_to_tiff(elevation_tif_path, rotation):
 
                     if 0 <= dem_row < elevation_source.height and 0 <= dem_col < elevation_source.width:
                         elevation_value = source_elevation_data[dem_row, dem_col]
-                        corrected_elevation_value = max_elevation - elevation_value
-                        elevation_band[row, col] = corrected_elevation_value
-                        if row % 100 == 0 and col % 100 == 0: 
-                            print(f"Original: {elevation_value}, Corrected: {corrected_elevation_value}")
-            print("[INFO] Transformation rotation successful.")
+                        # corrected_elevation_value = max_elevation - elevation_value
+                        elevation_band[row, col] = elevation_value
+                        # if row % 100 == 0 and col % 100 == 0: 
+                        #     print(f"Original: {elevation_value}, Corrected: {corrected_elevation_value}")
             # Prepare updated TIFF metadata
             new_meta = reproject_tif.meta.copy()
             new_meta.update(count=reproject_tif.count + 1)
 
-            print("[INFO] Transformation rotation successful2.")
             # Write updated TIFF
             with rasterio.open(
                 str(base_dir / "out" / "geolocated_elevations.tif"), "w", **new_meta
@@ -116,9 +114,6 @@ def rotate_transform(transform, angle_degrees, img_width, img_height):
         Affine.translation(img_width / 2, img_height / 2)
     )
     return transform * center_transform
-
-def trim_transform(transform, trim_x, trim_y):
-    return transform * Affine.translation(-trim_x, -trim_y)
 
 def reproject_tiff(source_tif_path, output_tif_path):
     with rasterio.open(source_tif_path) as source_tif:

@@ -1,4 +1,5 @@
 <ImageTransformation>:
+    download_button: download_button
     BoxLayout:
         orientation: 'vertical'
 
@@ -70,8 +71,10 @@
                         text: 'Use your own file'
                         on_release: root.use_own_file()
                     Button:
+                        id: download_button
                         text: 'Download DEM'
                         on_release: root.download_elevation()
+                        disabled: False
                 
         BoxLayout:
             size_hint_y: None

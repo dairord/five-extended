@@ -36,5 +36,5 @@ class StartMenu(Screen):
     def load_project(self, instance):
         self.manager.current = "load_project"
 
-    def watch_projects(self, instance):
-        self.manager.current = "watch_projects"
+    def see_project(self, instance):
+        self.manager.current = "see_project"

@@ -88,7 +88,7 @@ class EditScreen(Screen):
         otsu = self.make_detection(img, hue, saturation, value)
         contours = find_and_sort_contours(otsu)
 
-        create_image_detection(contours, img, None, False)
+        create_image_detection(contours, img, None, False, 0, None, None, None, None)
         return img
 
     def refresh_image(self):
@@ -128,14 +128,13 @@ class EditScreen(Screen):
             self.apply_processing(self.make_detection, self.hue, self.saturation, self.value)
         self.refresh_image()
 
-
-    def generate_files(self):
-        write_files(self.modified_image_path, self.hue, self.saturation, self.value, self.manager.rotation)
-
     def file_merge(self, project_name):
-        self.add_elevations()
-        move_file(Path(self.rotated_image_path), base_dir / "out", "original_image_" +project_name +".png") 
-        write_files(self.modified_image_path, project_name , self.hue, self.saturation, self.value, self.manager.rotation)
+        # self.add_elevations()
+        point1, _, point3, _= self.manager.square_coordinates
+        write_files(self.rotated_image_path, project_name , self.hue, self.saturation, self.value, self.manager.rotation,
+                    point1[0], point1[1], point3[0], point3[1])
+        move_file(Path(self.rotated_image_path), base_dir / "out", "original_image_" +project_name +".png")
+        print(self.hue, self.saturation, self.value)  
 
         return True
        

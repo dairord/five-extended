@@ -143,7 +143,6 @@ class KMLDocument:
 
 
 def search_custom_fields_in_document(kml_file, custom_field_names):
-    # Load the KML file
     tree = ET.parse(kml_file)
     root = tree.getroot()
 
@@ -159,9 +158,10 @@ def search_custom_fields_in_document(kml_file, custom_field_names):
             for data_element in data_elements:
                 field_name = data_element.get('name')
                 if field_name in custom_field_names:
-                    # Get the value of the Data element
-                    value_element = data_element.find('kml:value', namespaces)
-                    if value_element is not None:
-                        custom_fields_values[field_name].append(value_element.text.strip())
+                    # Get all value elements within the Data element
+                    value_elements = data_element.findall('kml:value', namespaces)
+                    for value_element in value_elements:
+                        if value_element is not None:
+                            custom_fields_values[field_name].append(value_element.text.strip())
             return custom_fields_values
     return {field_name: [] for field_name in custom_field_names}

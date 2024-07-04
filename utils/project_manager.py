@@ -30,7 +30,7 @@ def move_to_folder(save_folder_path):
         if path.is_file():
             new_path = save_folder_path / path.name
             shutil.copy2(str(path), str(new_path))
-    # clean_out_folder()
+    clean_out_folder()
 
 
 

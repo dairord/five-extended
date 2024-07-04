@@ -30,7 +30,6 @@ def plot_elevation_map(mosaic, title="Elevation Map"):
     plt.show()
 
 def start_elevation_download(coordinates, resolution_code):
-    print(coordinates)
     elevation_indexes = getIndex(coordinates, resolution_code)
     while elevation_indexes is None:
         print("INDEXER")
@@ -56,6 +55,9 @@ def start_elevation_download(coordinates, resolution_code):
 
     tif_files = [rasterio.open(temp_file.name) for temp_file in temp_files]
 
+    if tif_files.__len__() == 0: 
+        return None
+    
     merged_data, out_trans = merge(tif_files)
 
     # plot_elevation_map(merged_data)
