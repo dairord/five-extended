@@ -6,6 +6,7 @@ base_dir = Path(__file__).parent.parent
 def save_current_project(project_name):
     standard_path = base_dir / "projects" / project_name
     move_to_folder(standard_path)
+    return standard_path
 
 
 def save_project_in(custom_path, project_name):
@@ -13,7 +14,7 @@ def save_project_in(custom_path, project_name):
     move_to_folder(custom_project_path)
 
 
-def move_file(file_path, new_folder_path, new_name):
+def copy_file(file_path, new_folder_path, new_name):
     if file_path.is_file() and new_folder_path.is_dir():
         shutil.copy2(str(file_path), str(new_folder_path / new_name))
         return True

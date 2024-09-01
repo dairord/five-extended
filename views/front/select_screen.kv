@@ -5,7 +5,11 @@
     coord1_input: coord1_input_id
     coord2_input: coord2_input_id
     map_image: map_image_id
-    switch: switch_id
+    # switch: switch_id
+    select_image_button: select_image_button_id
+    maptiler_checkbox: maptiler_checkbox_id
+    google_checkbox: google_checkbox_id
+    download_image_button: download_image_button_id
 
     BoxLayout:
         orientation: 'vertical'
@@ -44,27 +48,52 @@
             size_hint: 1, None
 
             Label:
-                text: 'Search Motor: MapTiler' if switch_id.active else 'Search Motor: Google'
+                text: 'Search Motor:'
                 
-            Switch:
-                id: switch_id
+            CheckBox:
+                id: maptiler_checkbox_id
+                group: 'search_motor'
                 active: True
+                disabled: True
+            Label:
+                text: 'MapTiler'
+            CheckBox:
+                id: google_checkbox_id
+                group: 'search_motor'
+                disabled: True
+            Label: 
+                text: 'Google'
+
+            Button:
+                text: 'Open Map'
+                on_press: root.open_map()
+            
+            # Switch:
+            #     id: switch_id
+            #     active: True
 
         Image:
             id: map_image_id
-            source: 'map_placeholder.png'
+            source: 'img/leaf_icon.png'
 
         BoxLayout:
             size_hint_y: None
             height: 30
 
             Button:
+                id: select_image_button_id
                 text: 'Select Image'
                 on_press: root.next_window(self)
+                disabled: True
 
             Button:
-                text: 'Reload Image'
+                id: download_image_button_id
+                text: 'Download Image'
                 on_press: root.reload_image(self)
+            
+            Button:
+                text: 'Load Image'
+                on_press: root.load_image(self)
 #    TextInput:
 #                 id: coord1_input_id
 #                 text: "39.567191, -2.080372"

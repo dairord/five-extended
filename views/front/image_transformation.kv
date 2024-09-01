@@ -58,15 +58,22 @@
                         height: '48dp'
                         padding: '10dp'
                         spacing: '10dp'
-                        Button:
+                        CheckBox:
+                            group: 'resolution'
+                            active: True
+                            on_active: root.select_resolution(25)
+                        Label:
                             text: '25m'
-                            on_release: root.select_resolution(25)
-                        Button:
+                        CheckBox:
+                            group: 'resolution'
+                            on_active: root.select_resolution(5)
+                        Label:
                             text: '5m'
-                            on_release: root.select_resolution(5)
-                        Button:
+                        CheckBox:
+                            group: 'resolution'
+                            on_active: root.select_resolution(2)
+                        Label:
                             text: '2m'
-                            on_release: root.select_resolution(2)
                     Button:
                         text: 'Use your own file'
                         on_release: root.use_own_file()

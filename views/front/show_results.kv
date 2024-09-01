@@ -1,0 +1,52 @@
+<ShowResults>
+    final_image: final_image
+    show_button: show_button
+    five_button: five_button
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'start_menu'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: 10
+            Label:
+                text: 'Final Results'
+                size_hint: 1, 0.1
+            Image:
+                id: final_image
+
+            BoxLayout:
+                orientation:'horizontal'
+                spacing: 10
+                padding: 10
+                size_hint: 1, 0.5
+                Button:
+                    id: show_button
+                    text: 'Show original'
+                    on_press: root.change_image()
+                Button:
+                    text: 'Show final KML'
+                    on_press: root.show_kml()
+            
+            BoxLayout:
+                orientation:'horizontal'
+                spacing: 10
+                padding: 10
+                size_hint: 1, 0.5
+                Button:
+                    id: five_button
+                    text: 'Finish and open FIVE'
+                    on_press: root.finish()
+                    disabled: True
+                Button:
+                    text: 'Return to start menu'
+                    on_press: root.manager.current = 'init_screen'

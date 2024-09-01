@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import re
 import xml.etree.ElementTree as ET
 
 class File_Type(Enum):
@@ -85,7 +86,7 @@ class KMLDocument:
                         <Style>
                             <LineStyle>
                                 <color>{polygon['color']}</color>
-                                <width>2</width>
+                                <width>4</width>
                             </LineStyle>
                             <PolyStyle>
                                 <fill>0</fill>
@@ -165,3 +166,59 @@ def search_custom_fields_in_document(kml_file, custom_field_names):
                             custom_fields_values[field_name].append(value_element.text.strip())
             return custom_fields_values
     return {field_name: [] for field_name in custom_field_names}
+
+def get_next_path_name(existing_names, base_name):
+    max_suffix = 0
+    for name in existing_names:
+        if name.startswith(base_name):
+            try:
+                suffix = int(name.replace(base_name, "").strip())
+                max_suffix = max(max_suffix, suffix)
+            except ValueError:
+                continue
+    return f"{base_name} {max_suffix + 1}"
+
+def parse_coordinates(input_string):
+    pattern = r'\(\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*\)'
+    matches = re.findall(pattern, input_string)
+    return [(float(lon), float(lat)) for lat, lon in matches]
+
+def add_paths_to_kml(kml_file, coordinates):
+    ET.register_namespace('', "http://www.opengis.net/kml/2.2")
+    coordinates = parse_coordinates(coordinates)
+    tree = ET.parse(kml_file)
+    root = tree.getroot()
+
+    namespaces = {'kml': 'http://www.opengis.net/kml/2.2'}
+
+    document = root.find('.//kml:Document', namespaces)
+    if document is None:
+        print("No <Document> element found in the KML file.")
+        return
+
+    existing_names = [elem.text for elem in document.findall('.//kml:Placemark/kml:name', namespaces)]
+    path_name = "Path"
+    next_name = get_next_path_name(existing_names, path_name)
+
+    placemark = ET.Element("Placemark")
+
+    name_elem = ET.SubElement(placemark, "name")
+    name_elem.text = next_name
+
+    style_elem = ET.SubElement(placemark, "Style")
+    line_style = ET.SubElement(style_elem, "LineStyle")
+    color_elem = ET.SubElement(line_style, "color")
+    color_elem.text = "ff0000ff"
+    width_elem = ET.SubElement(line_style, "width")
+    width_elem.text = "4"
+
+    line_string = ET.SubElement(placemark, "LineString")
+
+    coordinates_elem = ET.SubElement(line_string, "coordinates")
+    coordinates_text = "\n".join(f"{point[0]},{point[1]},0" for point in coordinates) 
+    coordinates_elem.text = coordinates_text
+
+    document.append(placemark)
+
+    tree.write(kml_file, encoding="UTF-8", xml_declaration=True)
+    

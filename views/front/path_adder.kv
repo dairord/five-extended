@@ -1,0 +1,53 @@
+<PathAdder>:
+    save_button: save_button
+    project_spinner: project_spinner_id
+    path_input: path_input
+    BoxLayout:
+        orientation: 'vertical'
+
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'start_menu'
+        BoxLayout:
+            orientation:'vertical'
+            size_hint: 1, 1
+            padding: 10
+            spacing: 10
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: 'Paths Data'
+                TextInput:
+                    id: path_input
+                    text: '(coord1,coord2), ...'
+                Button:
+                    text: 'Add from file'
+                    on_press: root.open_filechooser(False)
+            BoxLayout:
+                orientation: 'horizontal'
+
+                Label:
+                    text: 'Select project to add path:'
+
+                Spinner:
+                    id: project_spinner_id
+                    text: "Select a project"
+                    values:
+                    on_text: root.select_project_folder(self.text)
+
+                Button:
+                    text: 'Select config file from project'
+                    on_press: root.open_filechooser(True)
+                
+            Button:
+                id: save_button
+                height: 40
+                size_hint_y: 0.5
+                text: 'Add paths to file and save'
+                disabled: True
+                on_press: root.set_paths()

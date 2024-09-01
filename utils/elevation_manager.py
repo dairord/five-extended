@@ -1,9 +1,7 @@
-from io import BytesIO
 import os
 from pathlib import Path
 import tempfile
 import rasterio
-from rasterio.io import MemoryFile
 from rasterio.merge import merge
 import time
 from utils.CNIGDownloader import download_elevation
@@ -32,7 +30,7 @@ def plot_elevation_map(mosaic, title="Elevation Map"):
 def start_elevation_download(coordinates, resolution_code):
     elevation_indexes = getIndex(coordinates, resolution_code)
     while elevation_indexes is None:
-        print("INDEXER")
+        # print("INDEXER")
         time.sleep(100)
         elevation_indexes = getIndex(coordinates, resolution_code)
     

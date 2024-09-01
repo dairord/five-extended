@@ -72,17 +72,18 @@ def create_image_detection(contours, img, project_name, generate_extra_data, rot
     ocupacion = np.empty((nlineasy, nlineasx), dtype=int)
     ocupacion[:][:] = 0
     transform = ""
-
     with rasterio.open(str(base_dir / "out" / "geolocated.tif")) as dataset:
         transform = dataset.transform
+        # transform = rotate_transform(transform, rotation, 975, 566)
         transform = rotate_transform(transform, rotation, img.shape[1], img.shape[0])
+        rasterio_elevations = rasterio.open(str(base_dir / "out" / "geolocated_elevations.tif"))
     if generate_extra_data:
         kml = KMLDocument(project_name)
         # longitude, latitude = pixel_to_geo(0,0, transform)
         kml.add_coordinates(latitude1, longitude1)
         # longitude, latitude = pixel_to_geo(img.shape[1] - 1,img.shape[0] - 1, transform)
         kml.add_coordinates(latitude2, longitude2)
-        kml.add_extra_data(File_Type.ORIGINAL_IMAGE, "original_image_" +project_name)
+        kml.add_extra_data(File_Type.ORIGINAL_IMAGE, "original")
         jsonMap = FiveMap("PruebaMapa")
     for contour in contours:
         # Calcular el área del contorno
@@ -101,7 +102,10 @@ def create_image_detection(contours, img, project_name, generate_extra_data, rot
 
             # Transformamos el punto en 4 coordenadas y sacamos la elevación
             coordinates = point_to_square_coordinates(x, y, width, height, transform)
-            elevation = pixel_to_elevation(x, y)
+            if rasterio_elevations is not None:
+                elevation = pixel_to_elevation(x, y, rasterio_elevations)
+            else:
+                elevation = 0
             # Quitamos un 0 a todo
             if area <= 210:  # 70:
                 letra = "B "

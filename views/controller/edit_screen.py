@@ -9,7 +9,7 @@ from kivy.properties import ObjectProperty
 from PIL import Image
 import numpy as np
 from utils.elevation_manager import start_elevation_download
-from utils.project_manager import save_current_project, save_project_in, exists_project_folder, move_file
+from utils.project_manager import save_current_project, save_project_in, exists_project_folder, copy_file
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 
@@ -117,15 +117,19 @@ class EditScreen(Screen):
             self.active_mask = False
             self.active_detection = False
             self.active_final = not self.active_final
-            if self.active_final:
-                self.apply_processing(self.make_final, self.hue, self.saturation, self.value)            
         self.apply_feature()
             
     def apply_feature(self):
+        self.ids.map_image.source = self.modified_image_path
+
         if self.active_mask:
             self.apply_processing(self.make_mask, self.hue, self.saturation, self.value)
         elif self.active_detection:
             self.apply_processing(self.make_detection, self.hue, self.saturation, self.value)
+        elif self.active_final:
+            self.apply_processing(self.make_final, self.hue, self.saturation, self.value)
+        else:
+            self.ids.map_image.source = self.rotated_image_path
         self.refresh_image()
 
     def file_merge(self, project_name):
@@ -133,7 +137,7 @@ class EditScreen(Screen):
         point1, _, point3, _= self.manager.square_coordinates
         write_files(self.rotated_image_path, project_name , self.hue, self.saturation, self.value, self.manager.rotation,
                     point1[0], point1[1], point3[0], point3[1])
-        move_file(Path(self.rotated_image_path), base_dir / "out", "original_image_" +project_name +".png")
+        copy_file(Path(self.rotated_image_path), base_dir / "out", "original.png")
         print(self.hue, self.saturation, self.value)  
 
         return True
@@ -146,8 +150,11 @@ class EditScreen(Screen):
         print(project_name)
         if exists_project_folder(project_name):
             self.show_error("The selected project name is already in use")
-        elif self.file_merge(project_name):
-            save_current_project(project_name)
+        else:
+            if self.file_merge(project_name):
+                saved_path = save_current_project(project_name)
+                self.manager.final_project_path = saved_path
+                self.manager.current = "show_results"
 
     def add_elevations(self):
                 # threading.Thread(target=start_elevation_download, args=square_coordinates)

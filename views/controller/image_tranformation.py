@@ -1,10 +1,8 @@
 from pathlib import Path
 import threading
 from kivy.uix.screenmanager import Screen
-import cv2
 from kivy.lang import Builder
 from kivy.uix.image import Image
-from kivy.core.clipboard import Clipboard
 from kivy.properties import ObjectProperty
 from PIL import Image
 from utils.elevation_manager import start_elevation_download
@@ -52,6 +50,7 @@ class ImageTransformation(Screen):
             print("Error in loading images")
 
     def rotate_image(self, angle):
+        print(angle)
         self.rotation = angle
         rotated_image = self.original_image.rotate(angle, expand=True)
         rotated_image.save(self.modified_image_path)
@@ -72,6 +71,7 @@ class ImageTransformation(Screen):
         if elevation_path is None:
             self.download_button.text = "Download failed\nUse different settings"
         else:
+            self.download_button.text = "Download successful"
             add_elevations_to_tiff(elevation_path, 0)
         
         self.download_button.disabled = False

@@ -1,0 +1,70 @@
+<ConfigMenu>
+    google_api_key: google_api_key
+    maptiler_api_key: maptiler_api_key
+    select_five_button: select_five_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, 1
+
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'init_screen'
+        BoxLayout:
+            orientation:'vertical'
+            size_hint: 1, 1
+            padding: 10
+            spacing: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, 0.1
+                padding: 10
+                spacing: 10
+
+                Label:
+                    text:'Google API Key: '
+
+                TextInput:
+                    id: google_api_key
+                    text: 'Google API Key'
+                    multiline: False
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, 0.1
+                padding: 10
+                spacing: 10
+
+                Label:
+                    text:'MapTiler API Key: '
+
+                TextInput:
+                    id: maptiler_api_key
+                    text: "MapTiler API Key"
+                    multiline: False
+
+            BoxLayout:
+                orientation:'horizontal'
+                size_hint: 1, 0.1
+                padding: 10
+                spacing: 10
+
+                Label:
+                    text: 'Select FIVE executable path:'
+                
+                Button:
+                    id: select_five_button
+                    text: 'No path to FIVE'
+                    on_press: root.open_filechooser()
+
+            Button:
+                spacing: 10
+                padding: 10
+                size_hint: 1, 0.1
+                text: 'Save'
+                on_press: root.save_keys()

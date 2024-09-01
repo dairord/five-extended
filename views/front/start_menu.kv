@@ -3,19 +3,31 @@
   BoxLayout:
     orientation: 'vertical'
 
-    Label:
-      text: 'FIVE map generator'
+    ActionBar:
+      ActionView:
+        use_separator: True
+        ActionPrevious:
+          title: 'Back'
+          with_previous: False
+          on_release: root.manager.current = 'init_screen'
+    BoxLayout:
+      orientation:'vertical'
+      size_hint: 1, 1
+      padding: 10
+      spacing: 10
+      Label:
+        text: 'FIVE map generator'
 
-    Button:
-      text: 'New project'
-      on_press: root.new_project(self)
+      Button:
+        text: 'New project'
+        on_press: root.new_project(self)
 
-    Button:
-      text: 'Load project'
-      on_press: root.load_project(self)
-      
-    Button:
-      text: 'See projects'
-      on_press: root.see_project(self)
+      Button:
+        text: 'Load project'
+        on_press: root.load_project(self)
+        
+      Button:
+        text: 'Add path to project'
+        on_press: root.manager.current = 'path_adder'
 
     

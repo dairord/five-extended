@@ -1,0 +1,22 @@
+# init_screen.kv
+<InitialScreen>:
+  BoxLayout:
+    orientation: 'vertical'
+    spacing: 10
+    padding: 10
+
+    Label:
+      text: 'FIVE Map Generator'
+
+    Image:
+      size_hint: 1, 1
+      source: 'img/leaf_icon.png'
+
+    Button:
+      text: 'Start'
+      on_press: root.manager.current = 'start_menu'
+
+    Button:
+      text: 'Configuration'
+      on_press: root.manager.current = 'config_menu'
+    

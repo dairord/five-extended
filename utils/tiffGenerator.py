@@ -6,6 +6,7 @@ from rasterio.warp import calculate_default_transform, reproject, Resampling
 from shapely.geometry import box
 import numpy as np
 from pathlib import Path
+from math import radians, cos, sin
 
 global name, lat1, lon1, lat2, lon2
 base_dir = Path(__file__).parent.parent
@@ -84,15 +85,13 @@ def add_elevations_to_tiff(elevation_tif_path, rotation):
     return False
 
 def pixel_to_geo(x, y, transform):
-    """Convert pixel coordinates to geographic coordinates using an affine transform."""
     return transform * (x, y)
 
-def pixel_to_elevation(x, y):
+def pixel_to_elevation(x, y, elevation):
     try:
-        with rasterio.open(str(base_dir / "out" / "geolocated_elevations.tif")) as rasterio_tiff:
-            elevation_band_index = rasterio_tiff.count
-            elevation_value = rasterio_tiff.read(elevation_band_index)[y, x]
-            return elevation_value
+        elevation_band_index = elevation.count
+        elevation_value = elevation.read(elevation_band_index)[y, x]
+        return elevation_value
     except:
         print("Error in reading elevation value {x} {y}")
         return 0
@@ -105,15 +104,10 @@ def point_to_square_coordinates(x, y, width, height, transform):
     return (top_left_geo, top_right_geo, bottom_right_geo, bottom_left_geo)
 
 def rotate_transform(transform, angle_degrees, img_width, img_height):
-    # Reverse the rotation to align with original coordinates
     rotation_matrix = Affine.rotation(angle_degrees)
-    # To rotate around the center of the image
-    center_transform = (
-        Affine.translation(-img_width / 2, -img_height / 2) *
-        rotation_matrix *
-        Affine.translation(img_width / 2, img_height / 2)
-    )
-    return transform * center_transform
+    center_translation = Affine.translation(-img_width / 2, -img_height / 2)
+    reverse_center_translation = Affine.translation(img_width / 2, img_height / 2)
+    return transform * reverse_center_translation * rotation_matrix * center_translation
 
 def reproject_tiff(source_tif_path, output_tif_path):
     with rasterio.open(source_tif_path) as source_tif:
