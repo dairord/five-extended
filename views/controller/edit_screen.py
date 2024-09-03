@@ -31,6 +31,7 @@ Builder.load_file(str(local_dir / "front" / "edit_screen.kv" ))
 
 class EditScreen(Screen):
     project_name_input = ObjectProperty(None)
+    generate_button = ObjectProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -48,6 +49,11 @@ class EditScreen(Screen):
     def on_pre_enter(self, *args):
         super().on_pre_enter(*args)
         image_path = self.manager.modified_image_path  
+
+        if Path(base_dir / "out" / "geolocated_elevations.tif").is_file():
+            self.generate_button.disabled = False
+        else:
+            self.generate_button.disabled = True
 
         if image_path:
             self.modified_image_path = str(base_dir / "tmp" / "masked.png" )

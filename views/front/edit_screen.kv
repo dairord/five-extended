@@ -69,7 +69,7 @@
                 width: '120dp'
                 
                 Button:
-                    text: 'Show detection mask'
+                    text: 'Show detection\nmask'
                     on_release: root.toggle_feature("mask")
                 
                 Button:
@@ -86,6 +86,6 @@
             
             Button:
                 id: generate_button
-                text: 'Next'
+                text: 'Generate'
                 on_release: root.save_to_project_folder()
                 disabled: True

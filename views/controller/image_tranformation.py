@@ -71,15 +71,15 @@ class ImageTransformation(Screen):
             top_input = int(self.top_id.text)
             bottom_input = int(self.bottom_id.text)
 
-            self.crop_pixels['left'] += left_input
-            self.crop_pixels['right'] += right_input
-            self.crop_pixels['top'] += top_input
-            self.crop_pixels['bottom'] += bottom_input
+            self.crop_pixels['left'] = left_input
+            self.crop_pixels['right'] = right_input
+            self.crop_pixels['top'] = top_input
+            self.crop_pixels['bottom'] = bottom_input
 
             self.crop_image()
 
         except ValueError:
-            self.show_error("Invalid input for cropping dimensions. Please enter valid numbers.")
+            self.show_error("Invalid input for cropping dimensions.\nPlease enter valid numbers.")
 
 
 
