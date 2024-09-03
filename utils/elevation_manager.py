@@ -6,7 +6,6 @@ from rasterio.merge import merge
 import time
 from utils.CNIGDownloader import download_elevation
 from utils.CNIGIndexer import getIndex
-import matplotlib.pyplot as plt
 import re
 
 base_dir = Path(__file__).parent.parent
@@ -18,14 +17,6 @@ def get_tif_list(elevation_indexes):
     matches = re.findall(pattern, elevation_indexes)
     return matches
 
-def plot_elevation_map(mosaic, title="Elevation Map"):
-    plt.figure(figsize=(10, 10))
-    plt.imshow(mosaic[0], cmap='terrain')
-    plt.colorbar(label='Elevation')
-    plt.title(title)
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.show()
 
 def start_elevation_download(coordinates, resolution_code):
     elevation_indexes = getIndex(coordinates, resolution_code)

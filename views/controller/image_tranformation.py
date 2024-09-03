@@ -4,23 +4,27 @@ from kivy.uix.screenmanager import Screen
 from kivy.lang import Builder
 from kivy.uix.image import Image
 from kivy.properties import ObjectProperty
-from PIL import Image
+from PIL import Image as PILImage
 from utils.elevation_manager import start_elevation_download
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.graphics import Color, Line, Rectangle
 
-
-from utils.tiffGenerator import add_elevations_to_tiff
+from utils.tiffGenerator import add_elevations_to_tiff, generate_tif, get_actual_transform, pixel_to_geo, point_to_square_coordinates
 
 local_dir = Path(__file__).parent.parent
 base_dir = Path(__file__).parent.parent.parent
-Builder.load_file(str(local_dir / "front" / "image_transformation.kv" ))
+Builder.load_file(str(local_dir / "front" / "image_transformation.kv"))
 
 class ImageTransformation(Screen):
     download_button = ObjectProperty(None)
+    top_id = ObjectProperty(None)
+    bottom_id = ObjectProperty(None)
+    left_id = ObjectProperty(None)
+    right_id = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -30,20 +34,21 @@ class ImageTransformation(Screen):
         self.modified_image = None
         self.rotation = 0
         self.resolution = "02107"
+        self.crop_pixels = {'left': 0, 'right': 0, 'top': 0, 'bottom': 0}  
 
     def on_pre_enter(self, *args):
         super().on_pre_enter(*args)
         self.original_image_path = self.manager.image_path  
 
         if self.original_image_path:
-            self.modified_image_path = str(base_dir / "tmp" / "modified.png" )
+            self.modified_image_path = str(base_dir / "tmp" / "modified.png")
             self.load_images()
             self.refresh_image()
 
     def load_images(self):
         try:
-            self.original_image = Image.open(self.original_image_path)
-            self.modified_image = Image.open(self.original_image_path)
+            self.original_image = PILImage.open(self.original_image_path)
+            self.modified_image = PILImage.open(self.original_image_path)
             self.modified_image.save(self.modified_image_path)
             self.ids.map_image.source = self.modified_image_path
         except IOError:
@@ -59,10 +64,57 @@ class ImageTransformation(Screen):
     def refresh_image(self):
         self.ids.map_image.reload()
 
+    def set_crop_pixels(self):
+        try:
+            left_input = int(self.left_id.text)
+            right_input = int(self.right_id.text)
+            top_input = int(self.top_id.text)
+            bottom_input = int(self.bottom_id.text)
+
+            self.crop_pixels['left'] += left_input
+            self.crop_pixels['right'] += right_input
+            self.crop_pixels['top'] += top_input
+            self.crop_pixels['bottom'] += bottom_input
+
+            self.crop_image()
+
+        except ValueError:
+            self.show_error("Invalid input for cropping dimensions. Please enter valid numbers.")
+
+
+
+    def crop_image(self):
+        pil_image = PILImage.open(self.modified_image_path)
+        img_width, img_height = pil_image.size
+
+        left = self.crop_pixels['left']
+        right = img_width - self.crop_pixels['right']
+        top = self.crop_pixels['top']
+        bottom = img_height - self.crop_pixels['bottom']
+
+        left = max(0, left)
+        right = min(img_width, right)
+        top = max(0, top)
+        bottom = min(img_height, bottom)
+
+
+        if right > left and bottom > top:
+            cropped_image = pil_image.crop((left, top, right, bottom))
+            cropped_image.save(self.modified_image_path)
+            self.refresh_image()
+            transform = get_actual_transform()
+            top_left = pixel_to_geo(left, top, transform)
+            bottom_right = pixel_to_geo(right, img_height, transform)
+            generate_tif(self.modified_image_path, top_left[1], top_left[0], bottom_right[1], bottom_right[0])
+            transform = get_actual_transform()
+            self.manager.square_coordinates = point_to_square_coordinates(0,0, img_width-right, img_height-bottom, transform)
+            
+        else:
+            print("Invalid crop dimensions, crop area must have non-zero width and height.")
+
     def download_elevation(self):
         self.show_choice_popup("Do you want to download the elevation data?\nThis process may take a while.")
-        
-    
+
     def download_thread(self):
         process_image = self.manager.get_screen('process_image')
         process_image.ids.generate_button.disabled = True
@@ -96,7 +148,6 @@ class ImageTransformation(Screen):
         if resolution == 25:
             self.resolution = "02107"
 
-
     def open_filechooser(self):
         filechooser = FileChooserListView(dirselect=False, path=str(base_dir))
         filechooser.bind(on_submit=self.on_file_select)
@@ -123,9 +174,7 @@ class ImageTransformation(Screen):
             process_image.ids.generate_button.disabled = False
             popup.dismiss()
 
-
     def show_error(self, message):
-
         popup = Popup(
             title="Error",
             content=Label(text=message),

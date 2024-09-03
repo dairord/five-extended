@@ -1,5 +1,9 @@
 <ImageTransformation>:
     download_button: download_button
+    top_id: top_id
+    bottom_id: bottom_id
+    left_id: left_id
+    right_id: right_id
     BoxLayout:
         orientation: 'vertical'
 
@@ -15,8 +19,8 @@
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: None
-            padding: '10dp'
-            spacing: '10dp'
+            padding: '5dp'
+            spacing: '5dp'
 
             BoxLayout:
                 orientation: 'horizontal'
@@ -35,6 +39,30 @@
                         max: 180
                         value: 0
                         on_value: root.rotate_image(self.value)
+
+            BoxLayout:
+                orientation: 'horizontal'
+
+                TextInput:
+                    id: top_id
+                    text: "Top pixels"
+                    multiline: False
+                TextInput:
+                    id: bottom_id
+                    text: "Bottom pixels"
+                    multiline: False
+                TextInput:
+                    id: left_id
+                    text: "Left pixels"
+                    multiline: False
+                TextInput:
+                    id: right_id
+                    text: "Right pixels"
+                    multiline: False
+
+                Button:
+                    text: 'Crop'
+                    on_release: root.set_crop_pixels()
 
         BoxLayout:
             orientation: 'horizontal'

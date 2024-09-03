@@ -5,7 +5,6 @@ import urllib3
 import certifi
 import os
 import http.client as http_client
-import time
 import re
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

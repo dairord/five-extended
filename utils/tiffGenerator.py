@@ -1,12 +1,9 @@
-from datetime import datetime
 import os
 import rasterio
 from rasterio.transform import from_bounds, Affine
 from rasterio.warp import calculate_default_transform, reproject, Resampling
-from shapely.geometry import box
 import numpy as np
 from pathlib import Path
-from math import radians, cos, sin
 
 global name, lat1, lon1, lat2, lon2
 base_dir = Path(__file__).parent.parent
@@ -83,6 +80,10 @@ def add_elevations_to_tiff(elevation_tif_path, rotation):
 
         return True
     return False
+
+def get_actual_transform():
+    with rasterio.open(str(base_dir / "out" / "geolocated.tif")) as src:
+        return src.transform
 
 def pixel_to_geo(x, y, transform):
     return transform * (x, y)
