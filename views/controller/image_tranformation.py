@@ -35,6 +35,7 @@ class ImageTransformation(Screen):
         self.rotation = 0
         self.resolution = "02107"
         self.crop_pixels = {'left': 0, 'right': 0, 'top': 0, 'bottom': 0}  
+        self.new_square_coordinates = None
 
     def on_pre_enter(self, *args):
         super().on_pre_enter(*args)
@@ -76,6 +77,9 @@ class ImageTransformation(Screen):
             self.crop_pixels['top'] = top_input
             self.crop_pixels['bottom'] = bottom_input
 
+            point1, _, point2, _ = self.manager.square_coordinates
+            generate_tif(self.original_image_path, point1[1], point1[0], point2[1], point2[0])
+
             self.crop_image()
 
         except ValueError:
@@ -84,7 +88,7 @@ class ImageTransformation(Screen):
 
 
     def crop_image(self):
-        pil_image = PILImage.open(self.modified_image_path)
+        pil_image = PILImage.open(self.original_image_path)
         img_width, img_height = pil_image.size
 
         left = self.crop_pixels['left']
@@ -107,7 +111,7 @@ class ImageTransformation(Screen):
             bottom_right = pixel_to_geo(right, img_height, transform)
             generate_tif(self.modified_image_path, top_left[1], top_left[0], bottom_right[1], bottom_right[0])
             transform = get_actual_transform()
-            self.manager.square_coordinates = point_to_square_coordinates(0,0, img_width-right, img_height-bottom, transform)
+            self.new_square_coordinates = point_to_square_coordinates(0,0, img_width-right, img_height-bottom, transform)
             
         else:
             print("Invalid crop dimensions, crop area must have non-zero width and height.")
@@ -132,6 +136,7 @@ class ImageTransformation(Screen):
     def next_window(self):
         self.manager.rotation = self.rotation
         self.manager.modified_image_path = self.modified_image_path
+        self.manager.square_coordinates = self.new_square_coordinates
         self.manager.current = "process_image"
 
     def start_slice(self):
