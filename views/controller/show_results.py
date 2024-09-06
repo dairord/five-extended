@@ -6,6 +6,8 @@ from kivy.uix.screenmanager import Screen
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 
+from utils.project_manager import copy_file
+
 Builder.load_file(str(Path(__file__).parent.parent / "front" / "show_results.kv"))
 base_dir = Path(__file__).parent.parent.parent
 
@@ -41,6 +43,9 @@ class ShowResults(Screen):
         os.startfile(str(self.manager.final_project_path / "project.kml"))
 
     def finish(self):
+        five_dir = Path(self.five_path).parent
+        copy_file(self.manager.final_project_path / "map.txt", five_dir, "map.txt")
+        # copy_file(self.manager.final_project_path / "map.json", five_dir, "map.json")
         subprocess.run(self.five_path, check=True)
 
         

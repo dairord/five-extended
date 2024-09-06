@@ -76,7 +76,13 @@ def create_image_detection(contours, img, project_name, generate_extra_data, rot
         transform = dataset.transform
         # transform = rotate_transform(transform, rotation, 975, 566)
         transform = rotate_transform(transform, rotation, img.shape[1], img.shape[0])
-        rasterio_elevations = rasterio.open(str(base_dir / "out" / "geolocated_elevations.tif"))
+        try:
+            rasterio_elevations = rasterio.open(str(base_dir / "out" / "geolocated_elevations.tif"))
+        except:
+            rasterio_elevations = None
+
+    kml = None
+    jsonMap = None
     if generate_extra_data:
         kml = KMLDocument(project_name)
         # longitude, latitude = pixel_to_geo(0,0, transform)
@@ -108,135 +114,29 @@ def create_image_detection(contours, img, project_name, generate_extra_data, rot
                 elevation = 0
             # Quitamos un 0 a todo
             if area <= 210:  # 70:
-                letra = "B "
-                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 0, 0), 2)  # Negro
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ff000000",
-                        "Vine growth 00",
-                        elevation
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ff000000",
-                        "Vine growth 00",
-                        elevation
-                    )
+                letra = "B " # Negro
+                set_polygon(img, "Vine growth 00", (0, 0, 0), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             elif area <= 290:  # 120:
-                letra = "C "
-                cv2.rectangle(img, (x, y), (x + width, y + height), (255, 0, 0), 2)  # Azul
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ffff0000",
-                        "Vine growth 01",
-                        elevation,
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ffff0000",
-                        "Vine growth 01",
-                        elevation,
-                    )
+                letra = "C " # Azul
+                set_polygon(img, "Vine growth 01", (255, 0, 0), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             elif area <= 370:  # 170:
-                letra = "D "
-                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 0, 255), 2)  # Rojo
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ff0000ff",
-                        "Vine growth 02",
-                        elevation,
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ff0000ff",
-                        "Vine growth 02",
-                        elevation,
-                    )
+                letra = "D " # Rojo
+                set_polygon(img, "Vine growth 02", (0, 0, 255), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             elif area <= 450:  # 210:
-                letra = "E "
-                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 255, 0), 2)  # Verde
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ff00ff00",
-                        "Vine growth 03",
-                        elevation,
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ff00ff00",
-                        "Vine growth 03",
-                        elevation,
-                    )
+                letra = "E " # Verde
+                set_polygon(img, "Vine growth 03", (0, 255, 0), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             elif area <= 530:  # 250:
-                letra = "G "
-                cv2.rectangle(
-                    img, (x, y), (x + width, y + height), (255, 255, 0), 2
-                )  # Azul Claro
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ffffff00",
-                        "Vine growth 04",
-                        elevation,
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ffffff00",
-                        "Vine growth 04",
-                        elevation,
-                    )
+                letra = "G " # Azul Claro
+                set_polygon(img, "Vine growth 04", (255, 255, 0), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             elif area <= 610:  # 290:
-                letra = "H "
-                cv2.rectangle(img, (x, y), (x + width, y + height), (255, 255, 255), 2)  # Blanco
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ffffffff",
-                        "Vine growth 05",
-                        elevation,
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ffffffff",
-                        "Vine growth 05",
-                        elevation,
-                    )
+                letra = "H " # Blanco
+                set_polygon(img, "Vine growth 05", (255, 255, 255), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             elif area <= 690:  # 330:
-                letra = "I "
-                cv2.rectangle(img, (x, y), (x + width, y + height), (0, 255, 255), 2)  # Amarillo
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ff00ffff",
-                        "Vine growth 06",
-                        elevation,
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ff00ffff",
-                        "Vine growth 06",
-                        elevation,
-                    )
+                letra = "I " # Amarillo
+                set_polygon(img, "Vine growth 06", (0, 255, 255), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             else:
-                letra = "J "
-                cv2.rectangle(img, (x, y), (x + width, y + height), (255, 0, 255), 2)  # Rosa
-                if generate_extra_data:
-                    kml.add_polygon(
-                        coordinates,
-                        "ffff00ff",
-                        "Vine growth 07",
-                        elevation,
-                    )
-                    jsonMap.addPolygon(
-                        coordinates,
-                        "ffff00ff",
-                        "Vine growth 07",
-                        elevation,
-                    )
+                letra = "J " # Rosa
+                set_polygon(img, "Vine growth 07", (255, 0, 255), x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data) 
             try:
                 locate_char_v2(x, y, width, height, letra, terreno, ocupacion, nlineasy, nlineasx)
             except:
@@ -249,6 +149,22 @@ def create_image_detection(contours, img, project_name, generate_extra_data, rot
 
     return terreno
 
+def set_polygon(img, name, color, x, y, width, height, coordinates, elevation, kml, jsonMap, generate_extra_data):
+    hex_color ='ff{:02x}{:02x}{:02x}'.format(color[0], color[1], color[2])
+    cv2.rectangle(img, (x, y), (x + width, y + height), color, 2)
+    if generate_extra_data:
+        kml.add_polygon(
+            coordinates,
+            hex_color,
+            name,
+            elevation,
+        )
+        jsonMap.addPolygon(
+            coordinates,
+            hex_color,
+            name,
+            elevation,
+        )
 
 def locate_char_v2(x, y, w, h, letra, terreno, ocupacion, nlineasy, nlineasx):
     center_x = int((x + w / 2) // distancia)

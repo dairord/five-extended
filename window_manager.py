@@ -3,6 +3,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import StringProperty
 from kivy.lang import Builder
 from views.controller.config_menu import ConfigMenu
+from views.controller.image_rotation import ImageRotation
 from views.controller.init_screen import InitialScreen
 from views.controller.load_project import LoadProject
 from views.controller.path_adder import PathAdder
@@ -34,6 +35,7 @@ class MyApp(App):
         sm.add_widget(StartMenu(name="start_menu"))
         sm.add_widget(SelectScreen(name="select_image"))
         sm.add_widget(ImageTransformation(name="image_transformation"))
+        sm.add_widget(ImageRotation(name="image_rotation")) 
         sm.add_widget(EditScreen(name="process_image"))
         sm.add_widget(LoadProject(name="load_project"))
         sm.add_widget(PathAdder(name="path_adder"))

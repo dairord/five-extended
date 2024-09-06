@@ -3,7 +3,6 @@ from kivy.uix.screenmanager import Screen
 import json
 import os
 import re
-import cv2
 from kivy.lang import Builder
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.boxlayout import BoxLayout
@@ -16,6 +15,7 @@ from kivy.core.clipboard import Clipboard
 from kivy.properties import ObjectProperty
 from utils.tiffGenerator import generate_tif
 import time
+import cv2
 
 # print(os.getcwd())
 local_dir = Path(__file__).parent.parent
@@ -119,13 +119,14 @@ class SelectScreen(Screen):
     def next_window(self, instance):
         tmp_img_path = self.manager.image_path 
         lat1, lon1, lat2, lon2 = self.get_coordinates()
+        if not lat1 or not lon1 or not lat2 or not lon2:
+            return
         lat1 = float(lat1)
         lon1 = float(lon1)
         lat2 = float(lat2)
         lon2 = float(lon2)
         generate_tif(tmp_img_path, lat1, lon1, lat2, lon2)
         self.manager.square_coordinates = ((lon1, lat1), (lon2, lat1), (lon2, lat2), (lon1, lat2))
-
         # add_elevations_to_tiff(str(base_dir / "utils" / "spain.tif"))
         self.manager.current = "image_transformation"
 
@@ -164,6 +165,8 @@ class SelectScreen(Screen):
     def get_coordinates(self):    
         coord1 = self.coord1_input.text
         coord2 = self.coord2_input.text
+        print(coord1)
+        print(coord2)
         if coord1 == "" or coord2 == "":
             self.show_error("Please input both coordinates")
             return None, None, None, None

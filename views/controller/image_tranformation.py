@@ -40,6 +40,7 @@ class ImageTransformation(Screen):
     def on_pre_enter(self, *args):
         super().on_pre_enter(*args)
         self.original_image_path = self.manager.image_path  
+        self.new_square_coordinates = None
 
         if self.original_image_path:
             self.modified_image_path = str(base_dir / "tmp" / "modified.png")
@@ -54,13 +55,6 @@ class ImageTransformation(Screen):
             self.ids.map_image.source = self.modified_image_path
         except IOError:
             print("Error in loading images")
-
-    def rotate_image(self, angle):
-        print(angle)
-        self.rotation = angle
-        rotated_image = self.original_image.rotate(angle, expand=True)
-        rotated_image.save(self.modified_image_path)
-        self.refresh_image()
 
     def refresh_image(self):
         self.ids.map_image.reload()
@@ -136,8 +130,9 @@ class ImageTransformation(Screen):
     def next_window(self):
         self.manager.rotation = self.rotation
         self.manager.modified_image_path = self.modified_image_path
-        self.manager.square_coordinates = self.new_square_coordinates
-        self.manager.current = "process_image"
+        if self.new_square_coordinates:
+            self.manager.square_coordinates = self.new_square_coordinates
+        self.manager.current = "image_rotation"
 
     def start_slice(self):
         self.show_error("Slice not implemented yet")

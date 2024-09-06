@@ -12,7 +12,8 @@ from utils.elevation_manager import start_elevation_download
 from utils.project_manager import save_current_project, save_project_in, exists_project_folder, copy_file
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 
 from utils.image_processing import (
     create_mask,
@@ -153,11 +154,14 @@ class EditScreen(Screen):
         if not self.project_name_input.text:
             self.show_error("Select a project name before saving")
         project_name = self.project_name_input.text
-        print(project_name)
         if exists_project_folder(project_name):
-            self.show_error("The selected project name is already in use")
+            self.show_choice_popup("The selected project name is already in use\nDo you want to overwrite it?")
         else:
-            if self.file_merge(project_name):
+            self.save()
+
+    def save(self):
+        project_name = self.project_name_input.text
+        if self.file_merge(project_name):
                 saved_path = save_current_project(project_name)
                 self.manager.final_project_path = saved_path
                 self.manager.current = "show_results"
@@ -180,3 +184,34 @@ class EditScreen(Screen):
             size=(400, 200),
         )
         popup.open()
+
+    def show_choice_popup(self, message):
+        content = BoxLayout(orientation='vertical')
+        content.add_widget(Label(text=message))
+
+        button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50)
+        accept_button = Button(text='Accept')
+        cancel_button = Button(text='Cancel')
+        
+        accept_button.bind(on_release=lambda x: self.on_choice('Accept', popup))
+        cancel_button.bind(on_release=lambda x: self.on_choice('Cancel', popup))
+        
+        button_layout.add_widget(accept_button)
+        button_layout.add_widget(cancel_button)
+        
+        content.add_widget(button_layout)
+        
+        popup = Popup(
+            title="Project name in use",
+            content=content,
+            size_hint=(None, None),
+            size=(400, 200),
+        )
+        popup.open()
+
+    def on_choice(self, choice, popup):
+        popup.dismiss()
+        if choice == 'Accept':
+            self.save()
+        elif choice == 'Cancel':
+            return

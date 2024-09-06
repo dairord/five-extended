@@ -1,0 +1,53 @@
+<ImageRotation>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        ActionBar:
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    title: 'Back'
+                    with_previous: False
+                    on_release: root.manager.current = 'image_transformation'
+                
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            padding: '5dp'
+            spacing: '5dp'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: '48dp'
+                padding: '10dp'
+                spacing: '10dp'
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Rotation'
+                    Slider:
+                        id: rotation_slider
+                        min: -180
+                        max: 180
+                        value: 0
+                        on_value: root.rotate_image(self.value)
+
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: '10dp'
+            spacing: '10dp'
+            Image:
+                id: map_image
+            
+        BoxLayout:
+            size_hint_y: None
+            height: '48dp'
+            padding: '10dp'
+            spacing: '10dp'
+            
+            Button:
+                text: 'Next'
+                on_release: root.next_window()

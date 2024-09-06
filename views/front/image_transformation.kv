@@ -24,41 +24,40 @@
 
             BoxLayout:
                 orientation: 'horizontal'
-                size_hint_y: None
-                height: '48dp'
-                padding: '10dp'
-                spacing: '10dp'
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Top pixels'
+                    TextInput:
+                        id: top_id
+                        text: "0"
+                        multiline: False
                 
                 BoxLayout:
                     orientation: 'vertical'
                     Label:
-                        text: 'Rotation'
-                    Slider:
-                        id: rotation_slider
-                        min: -180
-                        max: 180
-                        value: 0
-                        on_value: root.rotate_image(self.value)
-
-            BoxLayout:
-                orientation: 'horizontal'
-
-                TextInput:
-                    id: top_id
-                    text: "Top pixels"
-                    multiline: False
-                TextInput:
-                    id: bottom_id
-                    text: "Bottom pixels"
-                    multiline: False
-                TextInput:
-                    id: left_id
-                    text: "Left pixels"
-                    multiline: False
-                TextInput:
-                    id: right_id
-                    text: "Right pixels"
-                    multiline: False
+                        text: 'Bottom pixels'
+                    TextInput:
+                        id: bottom_id
+                        text: "0"
+                        multiline: False
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Left pixels'
+                    TextInput:
+                        id: left_id
+                        text: "0"
+                        multiline: False
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: 'Right pixels'
+                    TextInput:
+                        id: right_id
+                        text: "0"
+                        multiline: False
 
                 Button:
                     text: 'Crop'
