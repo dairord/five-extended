@@ -291,11 +291,14 @@ def write_files(imagen, project_name, hue, saturation, value, rotation, latitude
     filtro = str(base_dir / "out" / "filtro.png")
     otsu = str(base_dir / "out" / "otsu.png")
     if cv2.imwrite(colores, img):
-        print("Filed saved at " + colores)
+        pass
+        # print("Filed saved at " + colores)
     if cv2.imwrite(filtro, masked_img):
-        print("Filed saved at " + filtro)
+        pass
+        # print("Filed saved at " + filtro)
     if cv2.imwrite(otsu, thr):
-        print("Filed saved at " + otsu)
+        pass
+        # print("Filed saved at " + otsu)
     return True
 
 

@@ -84,8 +84,8 @@ def download_image(
             response = requests.post(
                 "https://tile.googleapis.com/v1/createSession?key="
                 + prefs["google_api_key"],
-                headers={"content-type": "application/json"},
-                json={"mapType": "satellite", "language": "es-ES", "region": "ES"},
+                headers={"Content-type": "application/json"},
+                json={"mapType": "satellite", "language": "en-US", "region": "US"},
             )
             session_token = response.json()["session"]
             key = prefs["google_api_key"]

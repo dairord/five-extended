@@ -34,7 +34,7 @@ def generate_tif(image_path, lat1, lon1, lat2, lon2):
 
 def add_elevations_to_tiff(elevation_tif_path, rotation):
     if not os.path.exists(elevation_tif_path):
-        print("yes")
+        pass
         # merged_elevations_path = get_merged_elevation()
 
     if reproject_tiff(str(base_dir / "out" / "geolocated.tif"), str(base_dir / "out" / "geolocated_reproject.tif")):

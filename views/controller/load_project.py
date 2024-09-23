@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from kivy.uix.screenmanager import Screen
 import os
 from kivy.lang import Builder
@@ -8,6 +9,7 @@ from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from utils.kmlGenerator import search_custom_fields_in_document, File_Type
+from utils.tiffGenerator import generate_tif
 
 local_dir = Path(__file__).parent.parent
 base_dir = Path(__file__).parent.parent.parent
@@ -83,10 +85,17 @@ class LoadProject(Screen):
             else:
                 self.original_path = None  
 
-            print(kml_data[File_Type.COORDINATES.value])
             if File_Type.COORDINATES.value in kml_data and len(kml_data[File_Type.COORDINATES.value]) > 0:
                 self.coord1.text = kml_data[File_Type.COORDINATES.value][0]
                 self.coord2.text = kml_data[File_Type.COORDINATES.value][1]
+                lat1, lon1 = [float(x) for x in re.findall(r"[+-]?\d*\.\d+|d+", self.coord1.text)]
+                lat2, lon2 = [float(x) for x in re.findall(r"[+-]?\d*\.\d+|d+", self.coord2.text)]
+                lat1 = float(lat1)
+                lon1 = float(lon1)
+                lat2 = float(lat2)
+                lon2 = float(lon2)
+                generate_tif(self.original_path, lat1, lon1, lat2, lon2)
+                self.manager.square_coordinates = ((lon1, lat1), (lon2, lat1), (lon2, lat2), (lon1, lat2))
             else:
                 self.elevation_path = None  
 
@@ -102,7 +111,5 @@ class LoadProject(Screen):
 
 
     def edit_project_data(self):
-        print(self.original_path)
         self.manager.image_path = str(self.original_path)
-        print(self.manager.image_path)
-        self.manager.current = "process_image"
+        self.manager.current = "image_transformation"

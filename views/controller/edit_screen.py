@@ -145,7 +145,6 @@ class EditScreen(Screen):
         write_files(self.rotated_image_path, project_name , self.hue, self.saturation, self.value, self.manager.rotation,
                     point1[0], point1[1], point3[0], point3[1])
         copy_file(Path(self.rotated_image_path), base_dir / "out", "original.png")
-        print(self.hue, self.saturation, self.value)  
 
         return True
        

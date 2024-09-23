@@ -83,8 +83,10 @@ class SelectScreen(Screen):
                 self.google_checkbox.active = True
             elif not self.maptiler_checkbox.disabled:
                 self.maptiler_checkbox.active = True
-            else:
+            if self.google_checkbox.disabled and self.maptiler_checkbox.disabled:
                 self.download_image_button.disabled = True
+            else:
+                self.download_image_button.disabled = False
         except FileNotFoundError:
             print("preferences.json file not found")
         except json.JSONDecodeError:
@@ -159,14 +161,12 @@ class SelectScreen(Screen):
             self.manager.image_path = tmp_img_path
 
             cv2.imwrite(tmp_img_path, img)
-            print(tmp_img_path)
             self.update_image(tmp_img_path)
 
     def get_coordinates(self):    
         coord1 = self.coord1_input.text
         coord2 = self.coord2_input.text
-        print(coord1)
-        print(coord2)
+
         if coord1 == "" or coord2 == "":
             self.show_error("Please input both coordinates")
             return None, None, None, None

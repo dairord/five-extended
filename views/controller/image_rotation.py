@@ -55,7 +55,6 @@ class ImageRotation(Screen):
             print("Error in loading images")
 
     def rotate_image(self, angle):
-        print(angle)
         self.rotation = angle
         rotated_image = self.original_image.rotate(angle, expand=True)
         rotated_image.save(self.modified_image_path)
